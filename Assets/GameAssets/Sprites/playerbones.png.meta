@@ -1,0 +1,312 @@
+fileFormatVersion: 2
+guid: 668976424f9714d4190c09d723c89fac
+timeCreated: 1497235706
+licenseType: Free
+TextureImporter:
+  fileIDToRecycleName:
+    21300000: head
+    21300002: legtr
+    21300004: legtl
+    21300006: armtr
+    21300008: armtl
+    21300010: torso
+    21300012: armbr
+    21300014: armbl
+    21300016: legbr
+    21300018: legbl
+    21300020: handr
+    21300022: handl
+    21300024: footr
+    21300026: footl
+  serializedVersion: 4
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+  isReadable: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    filterMode: 1
+    aniso: -1
+    mipBias: -1
+    wrapMode: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spritePixelsToUnits: 100
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  platformSettings:
+  - buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+  - buildTarget: Standalone
+    maxTextureSize: 2048
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+  - buildTarget: iPhone
+    maxTextureSize: 2048
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+  - buildTarget: Android
+    maxTextureSize: 2048
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+  - buildTarget: Tizen
+    maxTextureSize: 2048
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+  - buildTarget: WebGL
+    maxTextureSize: 2048
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+  - buildTarget: Samsung TV
+    maxTextureSize: 2048
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: head
+      rect:
+        serializedVersion: 2
+        x: 66
+        y: 416
+        width: 61
+        height: 67
+      alignment: 9
+      pivot: {x: 0.39370954, y: 0.13226683}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: legtr
+      rect:
+        serializedVersion: 2
+        x: 172
+        y: 378
+        width: 36
+        height: 60
+      alignment: 9
+      pivot: {x: 0.40994856, y: 0.7701553}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: legtl
+      rect:
+        serializedVersion: 2
+        x: 250
+        y: 376
+        width: 36
+        height: 60
+      alignment: 9
+      pivot: {x: 0.3559172, y: 0.78096163}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: armtr
+      rect:
+        serializedVersion: 2
+        x: 315
+        y: 407
+        width: 59
+        height: 39
+      alignment: 9
+      pivot: {x: 0.19916186, y: 0.7133359}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: armtl
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 405
+        width: 59
+        height: 39
+      alignment: 9
+      pivot: {x: 0.19916289, y: 0.7133374}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: torso
+      rect:
+        serializedVersion: 2
+        x: 58
+        y: 311
+        width: 69
+        height: 86
+      alignment: 9
+      pivot: {x: 0.59396696, y: 0.09288273}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: armbr
+      rect:
+        serializedVersion: 2
+        x: 317
+        y: 363
+        width: 58
+        height: 19
+      alignment: 9
+      pivot: {x: 0.19397499, y: 0.52919567}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: armbl
+      rect:
+        serializedVersion: 2
+        x: 402
+        y: 362
+        width: 58
+        height: 19
+      alignment: 9
+      pivot: {x: 0.19397499, y: 0.52919406}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: legbr
+      rect:
+        serializedVersion: 2
+        x: 179
+        y: 296
+        width: 33
+        height: 66
+      alignment: 9
+      pivot: {x: 0.4831922, y: 0.83616453}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: legbl
+      rect:
+        serializedVersion: 2
+        x: 258
+        y: 294
+        width: 33
+        height: 66
+      alignment: 9
+      pivot: {x: 0.5, y: 0.82776016}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: handr
+      rect:
+        serializedVersion: 2
+        x: 332
+        y: 323
+        width: 19
+        height: 14
+      alignment: 9
+      pivot: {x: 0.23726133, y: 0.46038166}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: handl
+      rect:
+        serializedVersion: 2
+        x: 422
+        y: 320
+        width: 19
+        height: 14
+      alignment: 9
+      pivot: {x: 0.23726292, y: 0.46038166}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: footr
+      rect:
+        serializedVersion: 2
+        x: 184
+        y: 264
+        width: 39
+        height: 19
+      alignment: 9
+      pivot: {x: 0.2866657, y: 0.52919406}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: footl
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 263
+        width: 39
+        height: 19
+      alignment: 9
+      pivot: {x: 0.25822097, y: 0.52919406}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    outline: []
+  spritePackingTag: 
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

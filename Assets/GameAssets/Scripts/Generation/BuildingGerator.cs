@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class BuildingGerator : MonoBehaviour {
@@ -8,7 +7,7 @@ public class BuildingGerator : MonoBehaviour {
 	public Transform platformCore, platformEndL, platformEndR, wallCore, wallBack, platformBack, platformRamp, fallThroughPlatform, fallThroughRamp;
 	public GameObject player;
 
-	RandomGenerator randomGenerator = new RandomGenerator();
+	private readonly RandomGenerator randomGenerator = new RandomGenerator();
 
 	public static LinkedList<Building> buildingData = new LinkedList<Building>();
 
@@ -18,13 +17,13 @@ public class BuildingGerator : MonoBehaviour {
 
 	private static int nextXLeft = -25;
 	private static int nextXRight = 25;
-	private static float MIN_FRINGE_DISTACE = 200f;
+	private const float MIN_FRINGE_DISTACE = 200f;
 
-	private int[] buildingDistances = {2, 8, 16, 24, 50};
+	private readonly int[] buildingDistances = {2, 8, 16, 24, 50};
 
-	private float SQRT_2 = 1.414213562f;
+	private const float SQRT_2 = 1.414213562f;
 
-	void Start(){
+	private void Start(){
 		BUILDING_WIDTH = new Range(35, 80);
 		FLOORS = new Range(2, 10);
 		FLOOR_HEIGHT = new Range(Player.JUMP_HEIGHT, Player.JUMP_HEIGHT + 4);
@@ -32,7 +31,7 @@ public class BuildingGerator : MonoBehaviour {
 		autoFillBuildings();
 	}
 
-	void Update(){
+	private void Update(){
 		autoFillBuildings();
 	}
 
@@ -65,7 +64,7 @@ public class BuildingGerator : MonoBehaviour {
 		}
 	}
 
-	Building generateBuilding(Building building){
+	private Building generateBuilding(Building building){
 		building.parent = new GameObject("_building");
 		building.parent.transform.SetParent(buildings.transform);
 		createGenericWall(building.x, 1, building.floorHeight * building.floors, wallBack, building.parent);
@@ -80,19 +79,19 @@ public class BuildingGerator : MonoBehaviour {
 		return building;
 	}
 
-	void generateBase(Building building){
+	private void generateBase(Building building){
 		generateCeiling(building, 0);
 		building.baseNodeL = generateWallWithDoor(building, building.range.min, 0, false);
 		building.baseNodeR = generateWallWithDoor(building, building.range.max, 0, false);
 	}
 
-	void generateFloor(Building building, int y){
+	private void generateFloor(Building building, int y){
 		generateCeiling(building, y);
 		generateFloorWall(building, building.range.min, y);
 		generateFloorWall(building, building.range.max, y);
 	}
 
-	void generateTopFloor(Building building, int y){
+	private void generateTopFloor(Building building, int y){
 		Range rampRange = generateCeiling(building, y);
 		Range minRange = new Range(rampRange.min - 1, rampRange.max + 1);
 		Range topRange = randomGenerator.rangeBetween(building.range, minRange, 2);
@@ -102,11 +101,9 @@ public class BuildingGerator : MonoBehaviour {
 		generateWallWithDoor(building, topRange.min, topY, true);
 		generateWallWithDoor(building, topRange.max, topY, true);
 		createPlatform(topRange.min, y + building.floorHeight * 2, topRange.size(), building.parent);
-		building.createNavNode(building.range.min, topY, NavNode.Type.WALL);
-		building.createNavNode(building.range.max, topY, NavNode.Type.WALL);
 	}
 
-	void generateFloorWall(Building building, int x, int y){
+	private void generateFloorWall(Building building, int x, int y){
 		int wallY = y + 1;
 		int wallHeight = building.floorHeight - 1;
 		if(randomGenerator.nextBool(building.windowFreq)){
@@ -118,10 +115,9 @@ public class BuildingGerator : MonoBehaviour {
 		else{
 			createGenericWall(x, wallY, wallHeight, wallCore, building.parent);
 		}
-		building.createNavNode(x, y, NavNode.Type.WALL);
 	}
 
-	NavNode generateWallWithDoor(Building building, int x, int y, bool generateBacking){
+	private NavNode generateWallWithDoor(Building building, int x, int y, bool generateBacking){
 		createGenericWall(x, Player.HEIGHT + 1 + y, building.floorHeight - Player.HEIGHT - 1, wallCore, building.parent);
 		if(generateBacking){
 			createGenericWall(x, y, building.floorHeight, wallBack, building.parent);
@@ -129,9 +125,9 @@ public class BuildingGerator : MonoBehaviour {
 		return building.createNavNode(x, y, NavNode.Type.DOOR);
 	}
 
-	Range generateCeiling(Building building, int y){
+	private Range generateCeiling(Building building, int y){
 		int gapWidth = building.floorHeight;
-		int gapXStart = randomGenerator.nextInt(building.x + 1, building.x + building.width - gapWidth);
+		int gapXStart = randomGenerator.nextInt(building.x + 2, building.x + building.width - gapWidth - 1);
 		int gapXEnd = gapXStart + gapWidth - 1;
 		int floorXEnd = building.x + building.width - 1;
 		int ceilingY = y + building.floorHeight;
@@ -147,7 +143,7 @@ public class BuildingGerator : MonoBehaviour {
 		return new Range(gapXStart, gapXEnd);
 	}
 
-	void createPlatform(int x, int y, int width, GameObject parent){
+	private void createPlatform(int x, int y, int width, GameObject parent){
 		GameObject platform = new GameObject("_platform");
 		platform.transform.SetParent(parent.transform);
 		Transform core = Instantiate(platformCore, new Vector3(0, 0, 0), Quaternion.identity, platform.transform) as Transform;
@@ -158,7 +154,7 @@ public class BuildingGerator : MonoBehaviour {
 		platform.transform.SetPositionAndRotation(CoordinateSystem.toReal(stretch(x, width), y), Quaternion.identity);
 	}
 
-	int createFallThroughRamp(int x, int y,  int width, int height, GameObject parent){
+	private int createFallThroughRamp(int x, int y,  int width, int height, GameObject parent){
 		Transform ramp = Instantiate(fallThroughRamp, new Vector3(0, 0, 0), Quaternion.identity, parent.transform) as Transform;
 		ramp.localScale += new Vector3(Mathf.Sqrt(width * width + height * height) - 1, 0, 0);
 		float offset = CoordinateSystem.BLOCK_WIDTH / SQRT_2 / 2;
@@ -169,19 +165,19 @@ public class BuildingGerator : MonoBehaviour {
 		return rotSign;
 	}
 
-	void createGenericPlatform(int x, int y, int width, Transform prefab, GameObject parent){
+	private static void createGenericPlatform(int x, int y, int width, Transform prefab, GameObject parent){
 		Transform platform = Instantiate(prefab, new Vector3(0, 0, 0), Quaternion.identity, parent.transform) as Transform;
 		platform.localScale += new Vector3(width - 1, 0, 0);
 		platform.transform.SetPositionAndRotation(CoordinateSystem.toReal(stretch(x, width), y), Quaternion.identity);
 	}
 
-	void createGenericWall(int x, int y, int height, Transform prefab, GameObject parent){
+	private static void createGenericWall(int x, int y, int height, Transform prefab, GameObject parent){
 		Transform wall = Instantiate(prefab, new Vector3(0, 0, 0), Quaternion.identity, parent.transform) as Transform;
 		wall.localScale += new Vector3(0, height - 1, 0);
 		wall.transform.SetPositionAndRotation(CoordinateSystem.toReal(x, stretch(y, height)), Quaternion.identity);
 	}
 
-	float stretch(int x, int size){
+	private static float stretch(int x, int size){
 		return x + size / 2f - 0.5f;
 	}
 

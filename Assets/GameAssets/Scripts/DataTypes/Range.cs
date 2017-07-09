@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class Range {
 
-	public int min { get; }
-	public int max { get; }
+	public int min { get; set; }
+	public int max { get; set; }
 
 	public Range(int a, int b){
 		if(a > b){
@@ -20,6 +20,10 @@ public class Range {
 
 	public int size(){
 		return max - min + 1;
+	}
+
+	public bool equals(Range range){
+		return min == range.min && max == range.max;
 	}
 	
 }

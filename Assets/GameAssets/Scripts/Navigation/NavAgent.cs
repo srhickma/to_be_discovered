@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class NavAgent : MonoBehaviour {
@@ -9,11 +8,11 @@ public class NavAgent : MonoBehaviour {
 
 	private Interval updateInterval;
 
-	void Awake(){
+	private void Awake(){
 		updateInterval = new Interval(updateClosestNode, 0.5f);
 	}
 
-	void Update(){
+	private void Update(){
 		updateInterval.update();
 	}
 
@@ -44,6 +43,10 @@ public class NavAgent : MonoBehaviour {
 		closestNode = closest;
 		
 		Debug.DrawLine(transform.position, closestNode.real, Color.blue, 0.01f);
+	}
+
+	public Building getClosestBuilding(){
+		return closestBuilding.Value;
 	}
 
 }

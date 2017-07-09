@@ -1,41 +1,57 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class Navigation {
 
-	private Dictionary<Vector2, bool> excluded = new Dictionary<Vector2, bool>();
+	private LinkedListNode<Building> closestBuilding;
+	private readonly Dictionary<Vector2, bool> excluded = new Dictionary<Vector2, bool>();
 
-	private NavNode start, target;
-
+	private readonly NavNode start, target;
+	private readonly Range targetBuildingRange;
+	private bool inTargetBuilding;
 
 	public Navigation(NavNode start, NavNode target){
 		this.start = start;
 		this.target = target;
+		targetBuildingRange = getClosestBuildingRange(target.real.x);
 	}
 
-	public void begin(){
-		traverse(start);
+	public LinkedList<NavNode> begin(){
+		LinkedList<NavNode> path = traverse(start);
+		while(path != null && path.First.Next != null && path.First.Value.y == path.First.Next.Value.y){
+			path.RemoveFirst();
+		}
+		return path;
 	}
 
-	private NavNode traverse(NavNode currentNode){
-		//Debug.DrawLine(currentNode.real, new Vector3(0, 0, 0), Color.red, 10000);
+	private LinkedList<NavNode> traverse(NavNode currentNode){
 		if(currentNode.equals(target)){
-			Debug.Log("HIT TARGET");
-			return currentNode;
+			LinkedList<NavNode> listStart = new LinkedList<NavNode>();
+			listStart.AddFirst(currentNode);
+			return listStart;
 		}
 		if(excluded.ContainsKey(currentNode.real)){
+			Debug.DrawLine(currentNode.real, Vector3.zero, Color.cyan, 1);
 			return null;
 		}
 		excluded.Add(currentNode.real, false);
-		List<NavNode> nodePriorities = getNodePriorities(currentNode);
+		if(!inTargetBuilding){
+			inTargetBuilding = getClosestBuildingRange(currentNode.real.x).equals(targetBuildingRange);
+		}
+		var nodePriorities = getNodePriorities(currentNode);
 		if(nodePriorities == null){
+			Debug.DrawLine(currentNode.real, Vector3.zero, Color.magenta, 1);
 			return null;
 		}
-		NavNode next = null;
-		foreach(NavNode node in nodePriorities){
+		LinkedList<NavNode> next = null;
+		foreach(var node in nodePriorities){
+			Debug.DrawLine(currentNode.real, node.real, Color.yellow, 4);
 			next = traverse(node);
 			if(next != null){
+				next.AddFirst(currentNode);
 				break;
 			}
 		}
@@ -43,10 +59,10 @@ public class Navigation {
 	}
 
 	private List<NavNode> getNodePriorities(NavNode currentNode){
-		List<NavNode> included = new List<NavNode>();
+		var included = new List<NavNode>();
 		int count = 0;
-		foreach(NavNode node in currentNode.nodes){
-			if(!excluded.ContainsKey(node.real)){
+		foreach(var node in currentNode.nodes){
+			if((!inTargetBuilding || getClosestBuildingRange(node.real.x).equals(targetBuildingRange)) && !excluded.ContainsKey(node.real)){
 				included.Add(node);
 				count ++;
 			}
@@ -57,6 +73,19 @@ public class Navigation {
 
 		included.Sort((nn1, nn2) => nn1.distanceTo(target).CompareTo(nn2.distanceTo(target)));
 		return included;
+	}
+	
+	private Range getClosestBuildingRange(float x){
+		if(closestBuilding == null){
+			closestBuilding = BuildingGerator.buildingData.First;
+		}
+		while(closestBuilding.Previous != null && x < CoordinateSystem.toReal(closestBuilding.Value.x) - CoordinateSystem.BLOCK_WIDTH){
+			closestBuilding = closestBuilding.Previous;
+		}
+		while(closestBuilding.Next != null && x > CoordinateSystem.toReal(closestBuilding.Next.Value.x) - CoordinateSystem.BLOCK_WIDTH){
+			closestBuilding = closestBuilding.Next;
+		}
+		return closestBuilding.Value.range;
 	}
 
 }

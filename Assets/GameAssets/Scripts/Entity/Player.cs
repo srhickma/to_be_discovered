@@ -13,10 +13,10 @@ public class Player : MonoBehaviour {
 	public Transform torso, head, arms, armtl, armtr, armbl, armbr, handl, handr, playerRig;
 
 	private Transform groundCheck;
-	const float groundedRadius = 0.2f;
+	private const float groundedRadius = 0.2f;
 	private bool grounded;
 	private Transform ceilingCheck;
-	const float ceilingRadius = 0.01f;
+	private const float ceilingRadius = 0.01f;
 
 	private bool facingRight = true;
 	private bool jump;
@@ -24,17 +24,14 @@ public class Player : MonoBehaviour {
 
 	public static int JUMP_HEIGHT = 7;
 	public static int HEIGHT = 4;
-	private static int PLAYER_LAYER = 9;
-	private static int FALL_THROUGH_LAYER = 8;
-	private static string FALL_THROUGH_TAG = "fall_through";
 
 	private Vector3 fallThroughPosition;
-	private List<EdgeCollider2D> fallThroughsIgnored = new List<EdgeCollider2D>();
-	private List<EdgeCollider2D> fallThroughsTouching = new List<EdgeCollider2D>();
-	public static CapsuleCollider2D collider;
+	private readonly List<EdgeCollider2D> fallThroughsIgnored = new List<EdgeCollider2D>();
+	private readonly List<EdgeCollider2D> fallThroughsTouching = new List<EdgeCollider2D>();
+	public new static CapsuleCollider2D collider;
 	private CircleCollider2D fallThroughCollider;
 	private Animator animator;
-	private Rigidbody2D rigidbody;
+	private new Rigidbody2D rigidbody;
 	private WeaponController weaponController;
 
 	private void Awake(){
@@ -56,7 +53,7 @@ public class Player : MonoBehaviour {
 			fallThroughsIgnored.Clear();
 		}
 		if(Input.GetButton("Crouch")){
-			Physics2D.IgnoreLayerCollision(PLAYER_LAYER, FALL_THROUGH_LAYER, true);
+			Physics2D.IgnoreLayerCollision(Constants.PLAYER_LAYER, Constants.FALL_THROUGH_LAYER, true);
 			if(fallThroughsTouching.Count > 0){
 				foreach(EdgeCollider2D fallThrough in fallThroughsTouching){
 					Physics2D.IgnoreCollision(fallThroughCollider, fallThrough, true);
@@ -66,7 +63,7 @@ public class Player : MonoBehaviour {
 			}
 		}
 		else{
-			Physics2D.IgnoreLayerCollision(PLAYER_LAYER, FALL_THROUGH_LAYER, false);
+			Physics2D.IgnoreLayerCollision(Constants.PLAYER_LAYER, Constants.FALL_THROUGH_LAYER, false);
 		}
 		if(!jump){
 			jump = Input.GetButtonDown("Jump");
@@ -79,18 +76,18 @@ public class Player : MonoBehaviour {
 		}
 	}
 
-	void LateUpdate(){
+	private void LateUpdate(){
 		alignUpperBody();
 	}
 
-	void OnCollisionEnter2D(Collision2D col){
-		if(col.gameObject.tag == FALL_THROUGH_TAG){
+	private void OnCollisionEnter2D(Collision2D col){
+		if(col.collider.CompareTag(Constants.FALL_THROUGH_TAG)){
 			fallThroughsTouching.Add(col.gameObject.GetComponent<EdgeCollider2D>());
 		}
 	}
 
-	void OnCollisionExit2D(Collision2D col){
-		if(col.gameObject.tag == FALL_THROUGH_TAG){
+	private void OnCollisionExit2D(Collision2D col){
+		if(col.collider.CompareTag(Constants.FALL_THROUGH_TAG)){
 			fallThroughsTouching.Remove(col.gameObject.GetComponent<EdgeCollider2D>());
 		}
 	}
@@ -98,9 +95,8 @@ public class Player : MonoBehaviour {
 	private void FixedUpdate(){
 		grounded = false;
 
-		Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheck.position, groundedRadius, whatIsGround);
-		for(int i = 0; i < colliders.Length; i++){
-			if (colliders[i].gameObject != gameObject && !(colliders[i].gameObject.tag == FALL_THROUGH_TAG && Input.GetButton("Crouch")))
+		foreach(Collider2D collider in Physics2D.OverlapCircleAll(groundCheck.position, groundedRadius, whatIsGround)){
+			if (collider.gameObject != gameObject && !(collider.CompareTag(Constants.FALL_THROUGH_TAG) && Input.GetButton("Crouch")))
 				grounded = true;
 		}
 

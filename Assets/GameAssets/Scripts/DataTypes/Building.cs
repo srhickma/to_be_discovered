@@ -4,16 +4,16 @@ using UnityEngine;
 
 public class Building {
 
-	public int x { get; }
-	public int width { get; }
-	public int floorHeight { get; }
-	public int floors { get; }
-	public double windowFreq { get; }
-	public Range range { get; }
+	public int x { get; set; }
+	public int width { get; set; }
+	public int floorHeight { get; set; }
+	public int floors { get; set; }
+	public double windowFreq { get; set; }
+	public Range range { get; set; }
 	public GameObject parent { get; set; }
 	public NavNode baseNodeL { get; set; }
 	public NavNode baseNodeR { get; set; }
-	private NodeGroup[] nodeGroups;
+	private readonly NodeGroup[] nodeGroups;
 
 	public Building(int x, int width, int floorHeight, int floors, double windowFreq){
 		this.x = x;
@@ -21,7 +21,7 @@ public class Building {
 		this.floorHeight = floorHeight;
 		this.floors = floors;
 		this.windowFreq = windowFreq;
-		this.range = new Range(x, x + width - 1);
+		range = new Range(x, x + width - 1);
 		nodeGroups = new NodeGroup[floors + 1];
 		for(int i = 0; i < nodeGroups.Length; i ++){
 			nodeGroups[i] = new NodeGroup();
@@ -65,11 +65,11 @@ public class Building {
 		return nodeGroups[floor];
 	}
 
-	int getFloor(int floorY){
+	private int getFloor(int floorY){
 		return floorY / floorHeight;
 	}
 
-	int getFloor(float floorY){
+	public int getFloor(float floorY){
 		return (int)(floorY / floorHeight);
 	}
 

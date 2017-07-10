@@ -38,7 +38,7 @@ public class NavNode {
 
 	public bool equals(NavNode node){
 		return node != null && Mathf.Abs(real.x - node.real.x) < delta &&
-			Mathf.Abs(real.y - node.real.y) < delta;
+			Mathf.Abs(real.y - node.real.y) < delta && type == node.type;
 	}
 
 	public double distanceTo(NavNode node){

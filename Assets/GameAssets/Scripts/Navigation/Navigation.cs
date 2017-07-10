@@ -7,7 +7,7 @@ using UnityEngine;
 public class Navigation {
 
 	private LinkedListNode<Building> closestBuilding;
-	private readonly Dictionary<Vector2, bool> excluded = new Dictionary<Vector2, bool>();
+	private readonly Dictionary<NavNode, bool> excluded = new Dictionary<NavNode, bool>();
 
 	private readonly NavNode start, target;
 	private readonly Range targetBuildingRange;
@@ -33,11 +33,11 @@ public class Navigation {
 			listStart.AddFirst(currentNode);
 			return listStart;
 		}
-		if(excluded.ContainsKey(currentNode.real)){
+		if(excluded.ContainsKey(currentNode)){
 			Debug.DrawLine(currentNode.real, Vector3.zero, Color.cyan, 1);
 			return null;
 		}
-		excluded.Add(currentNode.real, false);
+		excluded.Add(currentNode, false);
 		if(!inTargetBuilding){
 			inTargetBuilding = getClosestBuildingRange(currentNode.real.x).equals(targetBuildingRange);
 		}
@@ -62,7 +62,7 @@ public class Navigation {
 		var included = new List<NavNode>();
 		int count = 0;
 		foreach(var node in currentNode.nodes){
-			if((!inTargetBuilding || getClosestBuildingRange(node.real.x).equals(targetBuildingRange)) && !excluded.ContainsKey(node.real)){
+			if((!inTargetBuilding || getClosestBuildingRange(node.real.x).equals(targetBuildingRange)) && !excluded.ContainsKey(node)){
 				included.Add(node);
 				count ++;
 			}

@@ -8,7 +8,7 @@ public class WeaponObject : MonoBehaviour {
 
 	public LayerMask raysHit;
 
-	void shoot(Weapon weapon){
+	private void shoot(Weapon weapon){
 		print("HERE");
 		Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 		Vector2 delta = mousePos - (Vector2)raySource.position;
@@ -21,7 +21,7 @@ public class WeaponObject : MonoBehaviour {
 		}
 	}
 
-	void DrawLine(Vector3 start, Vector3 end, Color color, float duration = 0.2f){
+	private static void DrawLine(Vector3 start, Vector3 end, Color color, float duration = 0.2f){
 		GameObject line = new GameObject();
 		line.transform.position = start;
 		line.AddComponent<LineRenderer>();
@@ -31,7 +31,7 @@ public class WeaponObject : MonoBehaviour {
 		lr.SetWidth(0.06f, 0.06f);
 		lr.SetPosition(0, start);
 		lr.SetPosition(1, end);
-		GameObject.Destroy(line, duration);
+		Destroy(line, duration);
 	}
 
 }

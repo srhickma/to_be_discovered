@@ -5,6 +5,7 @@ public class NavAgent : MonoBehaviour {
 
 	private LinkedListNode<Building> closestBuilding;
 	public NavNode closestNode { get; set; }
+	public Transform refrerenceTransform;
 
 	private Interval updateInterval;
 
@@ -16,14 +17,14 @@ public class NavAgent : MonoBehaviour {
 		updateInterval.update();
 	}
 
-	private void updateClosestBuilding(){
+	public void updateClosestBuilding(){
 		if(closestBuilding == null){
 			closestBuilding = BuildingGerator.buildingData.First;
 		}
-		while(closestBuilding.Previous != null && transform.position.x < CoordinateSystem.toReal(closestBuilding.Value.x) - CoordinateSystem.BLOCK_WIDTH){
+		while(closestBuilding.Previous != null && refrerenceTransform.position.x < CoordinateSystem.toReal(closestBuilding.Value.x) - CoordinateSystem.BLOCK_WIDTH){
 			closestBuilding = closestBuilding.Previous;
 		}
-		while(closestBuilding.Next != null && transform.position.x > CoordinateSystem.toReal(closestBuilding.Next.Value.x) - CoordinateSystem.BLOCK_WIDTH){
+		while(closestBuilding.Next != null && refrerenceTransform.position.x > CoordinateSystem.toReal(closestBuilding.Next.Value.x) - CoordinateSystem.BLOCK_WIDTH){
 			closestBuilding = closestBuilding.Next;
 		}
 	}
@@ -31,18 +32,18 @@ public class NavAgent : MonoBehaviour {
 	private void updateClosestNode(){
 		updateClosestBuilding();
 		var closestNodeGroup = closestBuilding.Value.getClosestNodeGroup(
-			CoordinateSystem.fromReal(transform.position.y)
+			CoordinateSystem.fromReal(refrerenceTransform.position.y)
 		);
 		var nodes = closestNodeGroup.getNodes();
 		NavNode closest = null;
 		foreach(var node in nodes){
-			if(closest == null || Vector2.Distance(transform.position, node.real) < Vector2.Distance(transform.position, closest.real)){
+			if(closest == null || Vector2.Distance(refrerenceTransform.position, node.real) < Vector2.Distance(refrerenceTransform.position, closest.real)){
 				closest = node;
 			}
 		}
 		closestNode = closest;
 		
-		Debug.DrawLine(transform.position, closestNode.real, Color.blue, 0.01f);
+		Debug.DrawLine(refrerenceTransform.position, closestNode.real, Color.blue, 0.01f);
 	}
 
 	public Building getClosestBuilding(){

@@ -69,8 +69,12 @@ public class Building {
 		return floorY / floorHeight;
 	}
 
-	public int getFloor(float floorY){
-		return (int)(floorY / floorHeight);
+	public int getFloor(float y){
+		return (int)(y / floorHeight);
+	}
+
+	public int getFloorFromReal(float realY){
+		return getFloor(CoordinateSystem.fromReal(realY));
 	}
 
 }

@@ -15,6 +15,7 @@ public class Player : MonoBehaviour {
 	private Transform groundCheck;
 	private const float groundedRadius = 0.2f;
 	private bool grounded;
+	public bool onRamp { get; set; }
 	private Transform ceilingCheck;
 	private const float ceilingRadius = 0.01f;
 
@@ -33,6 +34,7 @@ public class Player : MonoBehaviour {
 	private Animator animator;
 	private new Rigidbody2D rigidbody;
 	private WeaponController weaponController;
+	
 
 	private void Awake(){
 		groundCheck = transform.Find("GroundCheck");
@@ -45,15 +47,17 @@ public class Player : MonoBehaviour {
 		animator.SetFloat("WalkMultiplier", 1);
 	}
 
-	void Update(){
+	private void Update(){
 		if(fallThroughsIgnored.Count > 0 && (Vector3.Distance(fallThroughPosition, transform.position) > 2.0f || transform.position.y > fallThroughPosition.y + 0.1f)){
 			foreach(EdgeCollider2D fallThrough in fallThroughsIgnored){
 				Physics2D.IgnoreCollision(fallThroughCollider, fallThrough, false);
 			}
 			fallThroughsIgnored.Clear();
 		}
-		if(Input.GetButton("Crouch")){
-			Physics2D.IgnoreLayerCollision(Constants.PLAYER_LAYER, Constants.FALL_THROUGH_LAYER, true);
+		bool crouchPressed = Input.GetButton("Crouch");
+		Physics2D.IgnoreLayerCollision(Constants.PLAYER_LAYER, Constants.FALL_THROUGH_LAYER, crouchPressed);
+		Physics2D.IgnoreLayerCollision(Constants.PLAYER_LAYER, Constants.FALL_THROUGH_RAMP_LAYER, crouchPressed);
+		if(crouchPressed){
 			if(fallThroughsTouching.Count > 0){
 				foreach(EdgeCollider2D fallThrough in fallThroughsTouching){
 					Physics2D.IgnoreCollision(fallThroughCollider, fallThrough, true);
@@ -61,9 +65,6 @@ public class Player : MonoBehaviour {
 					fallThroughPosition = transform.position;
 				}
 			}
-		}
-		else{
-			Physics2D.IgnoreLayerCollision(Constants.PLAYER_LAYER, Constants.FALL_THROUGH_LAYER, false);
 		}
 		if(!jump){
 			jump = Input.GetButtonDown("Jump");
@@ -84,11 +85,19 @@ public class Player : MonoBehaviour {
 		if(col.collider.CompareTag(Constants.FALL_THROUGH_TAG)){
 			fallThroughsTouching.Add(col.gameObject.GetComponent<EdgeCollider2D>());
 		}
+		else if(col.collider.CompareTag(Constants.FALL_THROUGH_RAMP_TAG)){
+			fallThroughsTouching.Add(col.gameObject.GetComponent<EdgeCollider2D>());
+			onRamp = true;
+		}
 	}
 
 	private void OnCollisionExit2D(Collision2D col){
 		if(col.collider.CompareTag(Constants.FALL_THROUGH_TAG)){
 			fallThroughsTouching.Remove(col.gameObject.GetComponent<EdgeCollider2D>());
+		}
+		else if(col.collider.CompareTag(Constants.FALL_THROUGH_RAMP_TAG)){
+			fallThroughsTouching.Remove(col.gameObject.GetComponent<EdgeCollider2D>());
+			onRamp = false;
 		}
 	}
 

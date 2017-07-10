@@ -14,6 +14,8 @@ public class Zombie : MonoBehaviour {
 	private const float NAV_FALL_THROUGH_DELTA = 3f;
 
 	private new Rigidbody2D rigidbody;
+	
+	private Transform groundCheck;
 
 	public NavNode target;
 	public LinkedListNode<NavNode> nextNode;
@@ -23,36 +25,47 @@ public class Zombie : MonoBehaviour {
 	private Player player;
 	private NavAgent playerNavAgent, navAgent;
 
+	private Vector2 targetPosition;
+
 	private Direction moveDirection;
 
 	private Interval aquireInterval;
 	private Interval overMoveInterval;
 
-	public bool overMoving;
+	public bool onRamp;
+	private bool overMoving;
+	
 	public bool canMove;
 
 	private void Awake(){
 		rigidbody = gameObject.GetComponent<Rigidbody2D>();
-
+		groundCheck = transform.Find("GroundCheck");
 		playerGO = GameObject.Find("Player");
 		player = playerGO.GetComponent<Player>();
 		playerNavAgent = playerGO.GetComponent<NavAgent>();
 		navAgent = GetComponent<NavAgent>();
 
 		aquireInterval = new Interval(aquirePath, 1f);
-		overMoveInterval = new Interval(() => overMoving = false, 0.1f);
+		overMoveInterval = new Interval(() => {
+			overMoving = false;
+			path.RemoveFirst();
+		}, 0.1f);
 	}
 
 	private void Update(){
+		targetPosition = playerGO.transform.position;
+		
+		
 		aquireInterval.update();
 		if(overMoving){
 			overMoveInterval.update();
 		}
-		
-		//float destinationY = nextNode == null ? playerGO.transform.position.y : nextNode.Value.real.y;
-		//Physics2D.IgnoreLayerCollision(Constants.ZOMBIE_LAYER, Constants.FALL_THROUGH_LAYER,
-		//	navAgent.getClosestBuilding().getFloor(destinationY) <
-		//	navAgent.getClosestBuilding().getFloor(transform.position.y));
+
+		float destY = nextNode == null ? targetPosition.y : nextNode.Value.real.y;
+		int destFloor = floorInBuilding(destY);
+		int currFloor = floorInBuilding(transform.position.y);
+		Physics2D.IgnoreLayerCollision(Constants.ZOMBIE_LAYER, Constants.FALL_THROUGH_LAYER, destFloor < currFloor);
+		Physics2D.IgnoreLayerCollision(Constants.ZOMBIE_LAYER, Constants.FALL_THROUGH_RAMP_LAYER, !(destFloor > currFloor || nextNode != null || player.onRamp));
 	}
 
 	private void FixedUpdate(){
@@ -60,30 +73,19 @@ public class Zombie : MonoBehaviour {
 			move();
 		}
 	}
-	
-	private void OnCollisionEnter2D(Collision2D col){
-		if(col.collider.CompareTag(Constants.FALL_THROUGH_TAG)){
-			
-		}
-	}
-
-	private void OnCollisionExit2D(Collision2D col){
-		if(col.collider.CompareTag(Constants.FALL_THROUGH_TAG)){
-			
-		}
-	}
 
 	public void aquirePath(){
+		navAgent.updateClosestBuilding();
 		if(navAgent.closestNode.equals(playerNavAgent.closestNode)){
 			nextNode = null;
 			return;
 		}
-		if(!playerNavAgent.closestNode.equals(target)){
+		//if(!playerNavAgent.closestNode.equals(target)){
 			target = playerNavAgent.closestNode;
 			Navigation nav = new Navigation(navAgent.closestNode, target);
 			path = nav.begin();
-			nextNode = path == null ? null : path.First;
-		}
+		//}
+		nextNode = getNextNode();
 		
 		NavNode lastNode = null;
 		foreach(var node in path){
@@ -104,7 +106,7 @@ public class Zombie : MonoBehaviour {
 	}
 
 	private void getDirection(){
-		float x = playerGO.transform.position.x;
+		float x = targetPosition.x;
 		if(nextNode != null){
 			if(Mathf.Abs(nextNode.Value.real.x - transform.position.x) < NAV_DELTA){
 				nextNode = nextNode.Next;
@@ -114,6 +116,40 @@ public class Zombie : MonoBehaviour {
 			x = nextNode.Value.real.x;
 		}
 		moveDirection = x > transform.position.x ? Direction.RIGHT : Direction.LEFT;
+	}
+
+	private LinkedListNode<NavNode> getNextNode(){
+		if(path == null){
+			return null;
+		}
+		if(path.First.Next != null && (path.First.Value.y == path.First.Next.Value.y || 
+		   path.First.Value.type == NavNode.Type.RAMP_BOTTOM && path.First.Next.Value.type == NavNode.Type.RAMP_TOP && 
+		   onRamp && groundCheck.position.y > floorRealY(groundCheck.position.y) + 0.25f)){
+			path.RemoveFirst();
+		}
+		return path.First;
+	}
+
+	private int floorInBuilding(float realY){
+		return navAgent.getClosestBuilding().getFloorFromReal(realY);
+	}
+
+	private float floorRealY(float realY){
+		Building building = navAgent.getClosestBuilding();
+		int floor = building.getFloorFromReal(realY);
+		return CoordinateSystem.toReal(floor * building.floorHeight);
+	}
+	
+	private void OnCollisionEnter2D(Collision2D col){
+		if(col.collider.CompareTag(Constants.FALL_THROUGH_RAMP_TAG)){
+			onRamp = true;
+		}
+	}
+
+	private void OnCollisionExit2D(Collision2D col){
+		if(col.collider.CompareTag(Constants.FALL_THROUGH_RAMP_TAG)){
+			onRamp = false;
+		}
 	}
 
 }

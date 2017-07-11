@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class NavNode {
@@ -43,6 +44,10 @@ public class NavNode {
 
 	public double distanceTo(NavNode node){
 		return Vector2.Distance(real, node.real);
+	}
+
+	public bool isJoinedWith(NavNode otherNode){
+		return nodes.Any(otherNode.equals);
 	}
 
 }

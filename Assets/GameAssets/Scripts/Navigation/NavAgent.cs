@@ -10,7 +10,7 @@ public class NavAgent : MonoBehaviour {
 	private Interval updateInterval;
 
 	private void Awake(){
-		updateInterval = new Interval(updateClosestNode, 0.5f);
+		updateInterval = new Interval(updateClosestNode, 0.1f);
 	}
 
 	private void Update(){

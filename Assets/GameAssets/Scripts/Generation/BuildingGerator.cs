@@ -4,7 +4,7 @@ using UnityEngine;
 public class BuildingGerator : MonoBehaviour {
 
 	public GameObject buildings;
-	public Transform platformCore, platformEndL, platformEndR, wallCore, wallBack, platformBack, platformRamp, fallThroughPlatform, fallThroughRamp;
+	public Transform platformCore, platformEndL, platformEndR, wallCore, wallBack, platformBack, platformRamp, fallThroughPlatform, fallThroughRamp, fallThroughRampShoulder;
 	public GameObject player;
 
 	private readonly RandomGenerator randomGenerator = new RandomGenerator();
@@ -146,7 +146,7 @@ public class BuildingGerator : MonoBehaviour {
 	private void createPlatform(int x, int y, int width, GameObject parent){
 		GameObject platform = new GameObject("_platform");
 		platform.transform.SetParent(parent.transform);
-		Transform core = Instantiate(platformCore, new Vector3(0, 0, 0), Quaternion.identity, platform.transform) as Transform;
+		Transform core = Instantiate(platformCore, new Vector3(0, 0, 0), Quaternion.identity, platform.transform);
 		core.localScale += new Vector3(width - 1, 0, 0);
 		float offset = width * CoordinateSystem.BLOCK_WIDTH / 2 - 0.0365f;
 		Instantiate(platformEndL, new Vector3(-offset, 0, 0), Quaternion.identity, platform.transform);
@@ -155,29 +155,30 @@ public class BuildingGerator : MonoBehaviour {
 	}
 
 	private int createFallThroughRamp(int x, int y,  int width, int height, GameObject parent){
-		Transform ramp = Instantiate(fallThroughRamp, new Vector3(0, 0, 0), Quaternion.identity, parent.transform) as Transform;
+		Transform ramp = Instantiate(fallThroughRamp, new Vector3(0, 0, 0), Quaternion.identity, parent.transform);
 		ramp.localScale += new Vector3(Mathf.Sqrt(width * width + height * height) - 1, 0, 0);
 		float offset = CoordinateSystem.BLOCK_WIDTH / SQRT_2 / 2;
 		Vector3 position = CoordinateSystem.toReal(stretch(x, width), stretch(y + 1, height));
 		int rotSign = randomGenerator.nextSign();
 		position += new Vector3(rotSign * offset, -offset, 0);
 		ramp.transform.SetPositionAndRotation(position, Quaternion.Euler(0, 0, rotSign * 45));
+		createGenericPlatform(x + (rotSign > 0 ? -2 : width), 0.01f + y, 2, fallThroughRampShoulder, parent);
 		return rotSign;
 	}
 
-	private static void createGenericPlatform(int x, int y, int width, Transform prefab, GameObject parent){
-		Transform platform = Instantiate(prefab, new Vector3(0, 0, 0), Quaternion.identity, parent.transform) as Transform;
+	private static void createGenericPlatform(float x, float y, int width, Transform prefab, GameObject parent){
+		Transform platform = Instantiate(prefab, new Vector3(0, 0, 0), Quaternion.identity, parent.transform);
 		platform.localScale += new Vector3(width - 1, 0, 0);
 		platform.transform.SetPositionAndRotation(CoordinateSystem.toReal(stretch(x, width), y), Quaternion.identity);
 	}
 
 	private static void createGenericWall(int x, int y, int height, Transform prefab, GameObject parent){
-		Transform wall = Instantiate(prefab, new Vector3(0, 0, 0), Quaternion.identity, parent.transform) as Transform;
+		Transform wall = Instantiate(prefab, new Vector3(0, 0, 0), Quaternion.identity, parent.transform);
 		wall.localScale += new Vector3(0, height - 1, 0);
 		wall.transform.SetPositionAndRotation(CoordinateSystem.toReal(x, stretch(y, height)), Quaternion.identity);
 	}
 
-	private static float stretch(int x, int size){
+	private static float stretch(float x, int size){
 		return x + size / 2f - 0.5f;
 	}
 

@@ -114,6 +114,8 @@ public class Player : MonoBehaviour {
 
 		move(Input.GetAxis("Horizontal"), Input.GetButton("Crouch"), jump);
 		jump = false;
+		
+		
 	}
 
 

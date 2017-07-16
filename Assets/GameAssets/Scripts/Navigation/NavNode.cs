@@ -9,7 +9,8 @@ public class NavNode {
 		WALL,
 		DOOR, 
 		RAMP_TOP,
-		RAMP_BOTTOM
+		RAMP_BOTTOM,
+		RAMP_MIDDLE
 	}
 
 	public int x { get; set; }
@@ -29,7 +30,7 @@ public class NavNode {
 
 	public void addNode(NavNode node){
 		nodes.Add(node);
-		//Debug.DrawLine(CoordinateSystem.toReal(x, y), CoordinateSystem.toReal(node.x, node.y), Color.green, 1000);
+		Debug.DrawLine(CoordinateSystem.toReal(x, y), CoordinateSystem.toReal(node.x, node.y), Color.green, 1000);
 	}
 
 	public static void join(NavNode nodeA, NavNode nodeB){

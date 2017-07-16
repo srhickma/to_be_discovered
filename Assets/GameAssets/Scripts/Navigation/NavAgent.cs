@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class NavAgent : MonoBehaviour {
@@ -10,7 +11,7 @@ public class NavAgent : MonoBehaviour {
 	private Interval updateInterval;
 
 	private void Awake(){
-		updateInterval = new Interval(updateClosestNode, 0.1f);
+		updateInterval = new Interval(updateClosestNode, 0.5f);
 	}
 
 	private void Update(){

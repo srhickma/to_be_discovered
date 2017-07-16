@@ -29,8 +29,12 @@ public class Building {
 	}
 
 	public NavNode createNavNode(int x, int y, NavNode.Type type){
+		return createNavNode(x, y, type, getFloor(y));
+	}
+
+	private NavNode createNavNode(int x, int y, NavNode.Type type, int nodeGroup){
 		NavNode newNode = new NavNode(x, y, type);
-		nodeGroups[getFloor(y)].addNode(newNode);
+		nodeGroups[nodeGroup].addNode(newNode);
 		return newNode;
 	}
 

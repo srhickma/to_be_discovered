@@ -1,11 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Zombie : MonoBehaviour {
 	
-	[SerializeField] private LayerMask rampLayerMask;
+	[SerializeField] private LayerMask whatIsGround;
 
 	private enum Direction {
 		LEFT = -1,
@@ -14,14 +12,15 @@ public class Zombie : MonoBehaviour {
 
 	private const float MAX_SPEED = 4f;
 	private const float NAV_DELTA = 0.25f;
-	private const float NAV_FALL_THROUGH_DELTA = 3f;
-	private const float RAMP_DELTA = 5f;
+	private const float MAX_GROUND_RADIUS = 10f;
 
 	private new Rigidbody2D rigidbody;
 	
-	private Transform groundCheck;
+	private Transform groundCheck, navReference;
 
 	public NavNode target;
+	private NavNode closestNode;
+	private NavNode lastRemoved;
 	public LinkedListNode<NavNode> nextNode;
 	private LinkedList<NavNode> path;
 	
@@ -30,14 +29,15 @@ public class Zombie : MonoBehaviour {
 	private NavAgent playerNavAgent, navAgent;
 
 	private Vector2 targetPosition;
+	private Vector2 destPosition = new Vector2(0, 0);
 
 	private Direction moveDirection;
 
 	private Interval aquireInterval;
 	private Interval overMoveInterval;
+	private Interval trimInterval;
 
-	private Collider2D onRampCollider;
-	public bool onRamp;
+	public bool onRamp, onFallThrough;
 	private bool overMoving;
 	
 	public bool canMove;
@@ -45,22 +45,28 @@ public class Zombie : MonoBehaviour {
 	private void Awake(){
 		rigidbody = gameObject.GetComponent<Rigidbody2D>();
 		groundCheck = transform.Find("GroundCheck");
+		navReference = transform.Find("NavReference");
 		playerGO = GameObject.Find("Player");
 		player = playerGO.GetComponent<Player>();
 		playerNavAgent = playerGO.GetComponent<NavAgent>();
 		navAgent = GetComponent<NavAgent>();
 
-		aquireInterval = new Interval(aquirePath, 0.1f);
+		aquireInterval = new Interval(aquirePath, 0.5f);
 		overMoveInterval = new Interval(() => {
 			overMoving = false;
 			path.RemoveFirst();
 		}, 0.1f);
+		trimInterval = new Interval(trimPath, 0.1f);
 	}
 
 	private void Update(){
 		targetPosition = playerGO.transform.position;
 		
 		aquireInterval.update();
+		if(overMoving){
+			overMoveInterval.update();
+		}
+		trimInterval.update();
 		
 		NavNode lastNode = null;
 		foreach(var node in path){
@@ -68,10 +74,6 @@ public class Zombie : MonoBehaviour {
 				Debug.DrawLine(node.real + Vector2.up * 2, lastNode.real + Vector2.up * 2, Color.red, 1);
 			}
 			lastNode = node;
-		}
-		
-		if(overMoving){
-			overMoveInterval.update();
 		}
 
 		nextNode = null;
@@ -81,19 +83,14 @@ public class Zombie : MonoBehaviour {
 			}
 			nextNode = path.First;
 		}
-
-		float destY = nextNode == null ? targetPosition.y : nextNode.Value.real.y;
-		if(nextNode == null){
-			Debug.Log("Down" + (path == null) + (path != null && path.First == null));
-		}
-		int destFloor = floorInBuilding(destY);
-		int currFloor = floorInBuilding(transform.position.y);
-		Physics2D.IgnoreLayerCollision(Constants.ZOMBIE_LAYER, Constants.FALL_THROUGH_LAYER, destFloor < currFloor);
-		//Physics2D.IgnoreLayerCollision(Constants.ZOMBIE_LAYER, Constants.FALL_THROUGH_RAMP_LAYER, !(destFloor > currFloor || nextNode == null && player.onRamp && floorInBuilding(transform.position.y) == floorInBuilding(targetPosition.y)));
 	}
 	
 	private void FixedUpdate(){
+		destPosition = nextNode == null ? targetPosition : nextNode.Value.real;
 		if(canMove){
+			Physics2D.IgnoreLayerCollision(Constants.ZOMBIE_LAYER, Constants.FALL_THROUGH_LAYER, navReference.position.y - destPosition.y > 2f);
+			Physics2D.IgnoreLayerCollision(Constants.ZOMBIE_LAYER, Constants.FALL_THROUGH_RAMP_LAYER, !(destPosition.y - navReference.position.y > 0.1f || nextNode == null && player.onRamp && floorInBuilding(transform.position.y) == floorInBuilding(targetPosition.y)));
+			
 			move();
 		}
 	}
@@ -103,21 +100,32 @@ public class Zombie : MonoBehaviour {
 			nextNode = null;
 			return;
 		}
-		//if(!playerNavAgent.closestNode.equals(target)){
+		if(!(playerNavAgent.closestNode.equals(target) && navAgent.closestNode.equals(closestNode) && (closestNode.equals(lastRemoved) || closestNode.equals(path.First.Value)))){
 			target = playerNavAgent.closestNode;
-			Navigation nav = new Navigation(navAgent.closestNode, target);
+			closestNode = navAgent.closestNode;
+			Navigation nav = new Navigation(closestNode, target);
 			path = nav.begin();
-		//}
+		}
 		trimPath();
 	}
 	
 	private void trimPath(){
 		if(path == null){
+			nextNode = null;
 			return;
 		}
-		if(path.First.Next != null && (path.First.Value.y == path.First.Next.Value.y || onRamp || floorInBuilding(groundCheck.position.y) != floorInBuilding(path.First.Value.real.y))){
-			path.RemoveFirst();
+
+		if(path.First.Next != null){
+			RaycastHit2D hit = Physics2D.Raycast(groundCheck.position, -Vector2.up, MAX_GROUND_RADIUS, whatIsGround);
+			onRamp = hit.collider != null && hit.collider.gameObject.CompareTag(Constants.FALL_THROUGH_RAMP_TAG);
+			onFallThrough = hit.collider != null && hit.collider.gameObject.CompareTag(Constants.FALL_THROUGH_TAG);
+			overMoving = onFallThrough && (onRamp || path.First.Value.y > path.First.Next.Value.y);
+			if(Mathf.Abs(path.First.Next.Value.real.y - navReference.position.y) < 2f || onRamp && path.First.Value.y != path.First.Next.Value.y || onFallThrough && path.First.Value.y > path.First.Next.Value.y){
+				lastRemoved = path.First.Value;
+				path.RemoveFirst();
+			}
 		}
+		nextNode = path.First;
 	}
 
 	private void move(){
@@ -133,7 +141,6 @@ public class Zombie : MonoBehaviour {
 		float x = targetPosition.x;
 		if(nextNode != null){
 			if(Mathf.Abs(nextNode.Value.real.x - transform.position.x) < NAV_DELTA){
-				traverse();
 				overMoving = true;
 				return;
 			}
@@ -144,35 +151,6 @@ public class Zombie : MonoBehaviour {
 
 	private int floorInBuilding(float realY){
 		return navAgent.getClosestBuilding().getFloorFromReal(realY);
-	}
-
-	private void traverse(){
-		if(nextNode != null){
-			path.RemoveFirst();
-			nextNode = path.First;
-		}
-	}
-	
-	private void OnCollisionEnter2D(Collision2D col){
-		if(col.collider.CompareTag(Constants.FALL_THROUGH_RAMP_TAG)){
-			Vector2 destPosition = nextNode == null ? targetPosition : nextNode.Value.real;
-			ContactPoint2D contact = col.contacts[0];
-			Debug.DrawLine(Vector2.zero, destPosition, Color.green, 10000);
-			Debug.Log(nextNode == null);
-			if(col.contacts.Length > 0 && Vector3.Dot(contact.normal, Vector3.up) > 0.5){
-				onRamp = true;
-				onRampCollider = col.collider;
-			}
-		}
-	}
-
-	private void OnCollisionExit2D(Collision2D col){
-		if(col.collider.CompareTag(Constants.FALL_THROUGH_RAMP_TAG)){
-			if(col.collider == onRampCollider){
-				onRamp = false;
-				onRampCollider = null;
-			}
-		}
 	}
 
 }

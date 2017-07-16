@@ -105,8 +105,10 @@ public class Player : MonoBehaviour {
 		grounded = false;
 
 		foreach(Collider2D collider in Physics2D.OverlapCircleAll(groundCheck.position, groundedRadius, whatIsGround)){
-			if (collider.gameObject != gameObject && !(collider.CompareTag(Constants.FALL_THROUGH_TAG) && Input.GetButton("Crouch")))
+			if(collider.gameObject != gameObject &&
+			   !(collider.CompareTag(Constants.FALL_THROUGH_TAG) && Input.GetButton("Crouch"))){
 				grounded = true;
+			}
 		}
 
 		animator.SetBool("Ground", grounded);
@@ -114,8 +116,6 @@ public class Player : MonoBehaviour {
 
 		move(Input.GetAxis("Horizontal"), Input.GetButton("Crouch"), jump);
 		jump = false;
-		
-		
 	}
 
 
@@ -123,12 +123,9 @@ public class Player : MonoBehaviour {
 		if(!grounded){
 			crouch = false;
 		}
-		else if(!crouch && animator.GetBool("Crouch")){
-			if (Physics2D.OverlapCircle(ceilingCheck.position, ceilingRadius, whatIsGround)){
-				crouch = true;
-			}
+		else if(!crouch && animator.GetBool("Crouch") && Physics2D.OverlapCircle(ceilingCheck.position, ceilingRadius, whatIsGround)){
+			crouch = true;
 		}
-			
 		animator.SetBool("Crouch", crouch);
 
 		if(grounded || airControl){
@@ -139,7 +136,7 @@ public class Player : MonoBehaviour {
 			rigidbody.velocity = new Vector2(move * maxSpeed, rigidbody.velocity.y);
 
 			if(move != 0){
-				if((move > 0) != facingRight){
+				if(move > 0 != facingRight){
 					animator.SetFloat("WalkMultiplier", -1f);
 				}
 				else{

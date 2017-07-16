@@ -16,12 +16,8 @@ public class NodeGroup {
 
 	public void connectNodes(){
 		for(int i = 0; i < nodes.Count - 1; i ++){
-			if(nodes[i].type != NavNode.Type.RAMP_MIDDLE){
-				for(int j = i + 1; j < nodes.Count; j++){
-					if(nodes[j].type != NavNode.Type.RAMP_MIDDLE){
-						NavNode.join(nodes[i], nodes[j]);
-					}
-				}
+			for(int j = i + 1; j < nodes.Count; j++){
+					NavNode.join(nodes[i], nodes[j]);
 			}
 		}
 	}

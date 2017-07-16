@@ -9,8 +9,7 @@ public class NavNode {
 		WALL,
 		DOOR, 
 		RAMP_TOP,
-		RAMP_BOTTOM,
-		RAMP_MIDDLE
+		RAMP_BOTTOM
 	}
 
 	public int x { get; set; }
@@ -45,10 +44,6 @@ public class NavNode {
 
 	public double distanceTo(NavNode node){
 		return Vector2.Distance(real, node.real);
-	}
-
-	public bool isJoinedWith(NavNode otherNode){
-		return nodes.Any(otherNode.equals);
 	}
 
 }

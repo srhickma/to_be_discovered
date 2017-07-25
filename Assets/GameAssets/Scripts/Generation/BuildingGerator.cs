@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class BuildingGerator : MonoBehaviour {
 
@@ -27,7 +31,7 @@ public class BuildingGerator : MonoBehaviour {
 		BUILDING_WIDTH = new Range(35, 80);
 		FLOORS = new Range(2, 10);
 		FLOOR_HEIGHT = new Range(Player.JUMP_HEIGHT, Player.JUMP_HEIGHT + 4);
-
+		
 		autoFillBuildings();
 	}
 
@@ -71,7 +75,7 @@ public class BuildingGerator : MonoBehaviour {
 		createGenericWall(building.x + building.width - 1, 1, building.floorHeight * building.floors, wallBack, building.parent);
 		generateBase(building);
 		for(int i = 1; i < building.floors - 1; i ++){
-			generateFloor(building, i * building.floorHeight);
+			//generateFloor(building, i * building.floorHeight);
 		}
 		generateTopFloor(building, (building.floors - 1) * building.floorHeight);
 		building.connectNavNodes();
@@ -80,19 +84,40 @@ public class BuildingGerator : MonoBehaviour {
 	}
 
 	private void generateBase(Building building){
-		generateCeiling(building, 0);
+		generateCeilingOld(building, 0);
 		building.baseNodeL = generateWallWithDoor(building, building.range.min, 0, false);
 		building.baseNodeR = generateWallWithDoor(building, building.range.max, 0, false);
 	}
 
-	private void generateFloor(Building building, int y){
-		generateCeiling(building, y);
+	private List<Range> generateFloor(Building building, int y, LinkedList<Range> prevRampRanges){
+		generateCeilingOld(building, y);
 		generateFloorWall(building, building.range.min, y);
 		generateFloorWall(building, building.range.max, y);
+		
+		return null;
 	}
 
+//	LinkedList<Range> generateNextRampRanges(Building building, LinkedList<Range> prevRampRanges){
+//		int minRoomWidth = building.roomWidth.min;
+//		Range possibleWallUniverse = new Range(building.range.min + minRoomWidth, building.roomWidth.max - minRoomWidth);
+//		RangeComposition excludedSet = new RangeComposition(prevRampRanges);
+//		int optimisticNumWalls = randomGenerator.nextInt(0, 4);
+//		for(int i = 0; i < optimisticNumWalls; i ++){
+//			RangeComposition includedSet = excludedSet.inverseRangeComposition(possibleWallUniverse);
+//			if(includedSet.isEmpty()){
+//				break;
+//			}
+//			int wallX = randomGenerator.nextInt(includedSet);
+//			excludedSet.addRange(new Range(wallX - minRoomWidth, wallX + minRoomWidth));
+//		}
+//	}
+
+//	private Range createRampWithinRange(Building building, Range range, ){
+//		
+//	}
+
 	private void generateTopFloor(Building building, int y){
-		Range rampRange = generateCeiling(building, y);
+		Range rampRange = generateCeilingOld(building, y);
 		Range minRange = new Range(rampRange.min - 1, rampRange.max + 1);
 		Range topRange = randomGenerator.rangeBetween(building.range, minRange, 2);
 		generateFloorWall(building, building.range.min, y);
@@ -124,23 +149,31 @@ public class BuildingGerator : MonoBehaviour {
 		}
 		return building.createNavNode(x, y, NavNode.Type.DOOR);
 	}
-
-	private Range generateCeiling(Building building, int y){
-		int gapWidth = building.floorHeight;
-		int gapXStart = randomGenerator.nextInt(building.x + 2, building.x + building.width - gapWidth - 1);
-		int gapXEnd = gapXStart + gapWidth - 1;
+	
+	private Range generateCeilingOld(Building building, int y){
+		int gapXStart = randomGenerator.nextInt(building.x + 2, building.x + building.width - building.rampWidth - 1);
+		int gapXEnd = gapXStart + building.rampWidth - 1;
 		int floorXEnd = building.x + building.width - 1;
 		int ceilingY = y + building.floorHeight;
 		createPlatform(building.x, ceilingY, gapXStart - building.x, building.parent);
 		createPlatform(gapXEnd + 1, ceilingY, floorXEnd - gapXEnd, building.parent);
-
-		createGenericPlatform(gapXStart, ceilingY, gapWidth, fallThroughPlatform, building.parent);
-		int rotSign = createFallThroughRamp(gapXStart, y, gapWidth, building.floorHeight, building.parent);
-		building.createRampNavNodes(gapXStart, gapXEnd, y, rotSign > 0);
-
 		createGenericPlatform(building.x, ceilingY, building.width, platformBack, building.parent);
+		
+		generateRamp(building, new Range(gapXStart, gapXEnd), y);
 
-		return new Range(gapXStart, gapXEnd);
+		return new Range(0, 0);
+	}
+
+	private void generateCeiling(Building building, List<Range> rampRanges, int y){
+		foreach(Range range in rampRanges){
+			generateRamp(building, range, y);
+		}
+	}
+
+	private void generateRamp(Building building, Range range, int y){
+		createGenericPlatform(range.min, y + building.floorHeight, building.rampWidth, fallThroughPlatform, building.parent);
+		int rotSign = createFallThroughRamp(range.min, y, building.rampWidth, building.floorHeight, building.parent);
+		building.createRampNavNodes(range.min, range.max + building.rampWidth - 1, y, rotSign > 0);
 	}
 
 	private void createPlatform(int x, int y, int width, GameObject parent){

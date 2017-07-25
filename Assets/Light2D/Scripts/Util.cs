@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
-using System.Xml.Serialization;
+//using System.Xml.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -318,7 +318,7 @@ namespace Light2D
         }
 
 #if !UNITY_WINRT
-        public static void Serialize<T>(string path, T obj) where T : class
+        /*public static void Serialize<T>(string path, T obj) where T : class
         {
             using (var stream = File.Create(path))
             {
@@ -365,7 +365,7 @@ namespace Light2D
                 Debug.LogError(ex);
                 return default(T);
             }
-        }
+        }*/
 #endif
 
         public static int IndexOfMin<T>(this List<T> list, Func<T, float> pred)

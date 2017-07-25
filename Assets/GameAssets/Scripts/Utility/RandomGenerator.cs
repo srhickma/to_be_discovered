@@ -4,10 +4,14 @@ using System.Linq;
 
 public class RandomGenerator {
 
-	private System.Random random = new System.Random();
+	private readonly System.Random random = new System.Random();
 
 	public int nextInt(Range range){
 		return random.Next(range.min, range.max + 1);
+	}
+
+	public int nextInt(RangeComposition rangeComposition){
+		return rangeComposition.expandedValueOf(random.Next(rangeComposition.compressedSize()));
 	}
 
 	public int nextInt(int minInc, int maxExc){
@@ -37,12 +41,17 @@ public class RandomGenerator {
 	}
 
 	public Range rangeBetween(Range tendFrom, Range tendTo, int iterations){
-		if(iterations == 1){
-			return rangeBetween(tendFrom, tendTo);
+		for(; iterations > 1; iterations --){
+			int newMin = nextInt(new Range(tendFrom.min, tendTo.min));
+			int newMax = nextInt(new Range(tendFrom.max, tendTo.max));
+			tendFrom = new Range(newMin, newMax);
 		}
-		int newMin = nextInt(new Range(tendFrom.min, tendTo.min));
-		int newMax = nextInt(new Range(tendFrom.max, tendTo.max));
-		return rangeBetween(new Range(newMin, newMax), tendTo, iterations - 1);
+		return rangeBetween(tendFrom, tendTo);
+	}
+
+	public Range subRange(int size, Range universe){
+		int min = nextInt(new Range(universe.min + 1, universe.max - size));
+		return new Range(min, min + size - 1);
 	}
 
 	public T randomPreset<T>(T[] presets){

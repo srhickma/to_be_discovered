@@ -1,14 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Building {
 
 	public int x { get; set; }
 	public int width { get; set; }
 	public int floorHeight { get; set; }
+	public int rampWidth { get; set; }
 	public int floors { get; set; }
 	public double windowFreq { get; set; }
+	public Range roomWidth { get; set; }
 	public Range range { get; set; }
 	public GameObject parent { get; set; }
 	public NavNode baseNodeL { get; set; }
@@ -21,6 +21,8 @@ public class Building {
 		this.floorHeight = floorHeight;
 		this.floors = floors;
 		this.windowFreq = windowFreq;
+		rampWidth = floorHeight;
+		roomWidth = new Range(rampWidth + 2, width);
 		range = new Range(x, x + width - 1);
 		nodeGroups = new NodeGroup[floors + 1];
 		for(int i = 0; i < nodeGroups.Length; i ++){

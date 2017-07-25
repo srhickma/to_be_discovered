@@ -25,5 +25,13 @@ public class Range {
 	public bool equals(Range range){
 		return min == range.min && max == range.max;
 	}
+
+	public bool contains(int x){
+		return x >= min && x <= max;
+	}
+
+	public bool overlapsWith(Range range){
+		return contains(range.min) || contains(range.max) || range.contains(min) || range.contains(max);
+	}
 	
 }

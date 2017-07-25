@@ -6,26 +6,26 @@ public class Weapon {
 
 	public enum WeaponType {
 		KNIFE, PISTOL, REVOLVER
-	};
+	}
 
-	RandomGenerator randomGenerator = new RandomGenerator();
+	private readonly RandomGenerator randomGenerator = new RandomGenerator();
 
-	private WeaponType type { get; }
+	private WeaponType type{ get; set; }
 
-	private Range damage;
-	public float accuracy { get; }
-	public float firePeriod { get; }
-	public float reloadPeriod { get; }
-	public bool isAuto { get; }
+	private readonly Range damage;
+	public float accuracy { get; set; }
+	public float firePeriod { get; set; }
+	public float reloadPeriod { get; set; }
+	public bool isAuto { get; set; }
 
 	public int ammoPerMag { get; set; }
 	public int ammoInMag { get; set; }
 	public int ammoOutMag { get; set; }
 
-    public string anim_idle { get; }
-	public string anim_fire { get; }
-	public string anim_reload { get; }
-	public string anim_equip { get; }
+    public string anim_idle { get; set; }
+	public string anim_fire { get; set; }
+	public string anim_reload { get; set; }
+	public string anim_equip { get; set; }
 
 	public GameObject obj { get; set; }
 

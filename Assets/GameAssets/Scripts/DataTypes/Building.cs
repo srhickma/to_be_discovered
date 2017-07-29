@@ -7,6 +7,7 @@ public class Building {
 	public int floorHeight { get; set; }
 	public int rampWidth { get; set; }
 	public int floors { get; set; }
+	public int  maxRooms { get; set; }
 	public double windowFreq { get; set; }
 	public Range roomWidth { get; set; }
 	public Range range { get; set; }
@@ -15,11 +16,12 @@ public class Building {
 	public NavNode baseNodeR { get; set; }
 	private readonly NodeGroup[] nodeGroups;
 
-	public Building(int x, int width, int floorHeight, int floors, double windowFreq){
+	public Building(int x, int width, int floorHeight, int floors, int maxRooms, double windowFreq){
 		this.x = x;
 		this.width = width;
 		this.floorHeight = floorHeight;
 		this.floors = floors;
+		this.maxRooms = maxRooms;
 		this.windowFreq = windowFreq;
 		rampWidth = floorHeight;
 		roomWidth = new Range(rampWidth + 2, width);

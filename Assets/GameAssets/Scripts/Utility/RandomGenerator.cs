@@ -1,14 +1,19 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 
 public class RandomGenerator {
 
-	private readonly System.Random random = new System.Random();
+	private readonly Random random = new Random();
 
 	public int nextInt(Range range){
 		return random.Next(range.min, range.max + 1);
 	}
+	
+	//Requirements, f(0)=0 && f(1)=1 && f(x)E[0,1] for all xE[0,1]
+	public int nextInt(int maxExc, Func<float, float> f){
+		return (int)(f((float)random.NextDouble()) * maxExc);
+	}
+
 
 	public int nextInt(RangeComposition rangeComposition){
 		return rangeComposition.expandedValueOf(random.Next(rangeComposition.compressedSize()));

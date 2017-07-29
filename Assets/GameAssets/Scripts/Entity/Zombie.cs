@@ -68,13 +68,13 @@ public class Zombie : MonoBehaviour {
 		}
 		trimInterval.update();
 		
-		NavNode lastNode = null;
-		foreach(var node in path){
-			if(lastNode != null){
-				Debug.DrawLine(node.real + Vector2.up * 2, lastNode.real + Vector2.up * 2, Color.red, 1);
-			}
-			lastNode = node;
-		}
+//		NavNode lastNode = null;
+//		foreach(var node in path){
+//			if(lastNode != null){
+//				Debug.DrawLine(node.real + Vector2.up * 2, lastNode.real + Vector2.up * 2, Color.red, 1);
+//			}
+//			lastNode = node;
+//		}
 
 		nextNode = null;
 		if(path != null){

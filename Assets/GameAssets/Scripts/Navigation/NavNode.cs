@@ -29,7 +29,7 @@ public class NavNode {
 
 	public void addNode(NavNode node){
 		nodes.Add(node);
-		Debug.DrawLine(CoordinateSystem.toReal(x, y), CoordinateSystem.toReal(node.x, node.y), Color.green, 1000);
+		//Debug.DrawLine(CoordinateSystem.toReal(x, y), CoordinateSystem.toReal(node.x, node.y), Color.green, 1000);
 	}
 
 	public static void join(NavNode nodeA, NavNode nodeB){

@@ -32,11 +32,18 @@ public class BuildingGerator : MonoBehaviour {
 		FLOORS = new Range(2, 10);
 		FLOOR_HEIGHT = new Range(Player.JUMP_HEIGHT, Player.JUMP_HEIGHT + 4);
 		
-		autoFillBuildings();
+		buildingData.AddFirst(generateBuilding(new Building(-100,
+			75,
+			randomGenerator.nextInt(FLOOR_HEIGHT),
+			10,
+			4,
+			randomGenerator.nextDouble()
+		)));
+		//autoFillBuildings();
 	}
 
 	private void Update(){
-		autoFillBuildings();
+		//autoFillBuildings();
 	}
 
 	private void autoFillBuildings(){
@@ -46,6 +53,7 @@ public class BuildingGerator : MonoBehaviour {
 				width,
 				randomGenerator.nextInt(FLOOR_HEIGHT),
 				randomGenerator.nextInt(FLOORS),
+				4,
 				randomGenerator.nextDouble()
 			)));
 			if(buildingData.First.Next != null){
@@ -59,6 +67,7 @@ public class BuildingGerator : MonoBehaviour {
 				width,
 				randomGenerator.nextInt(FLOOR_HEIGHT),
 				randomGenerator.nextInt(FLOORS),
+				4,
 				randomGenerator.nextDouble()
 			)));
 			if(buildingData.Last.Previous != null){
@@ -73,9 +82,10 @@ public class BuildingGerator : MonoBehaviour {
 		building.parent.transform.SetParent(buildings.transform);
 		createGenericWall(building.x, 1, building.floorHeight * building.floors, wallBack, building.parent);
 		createGenericWall(building.x + building.width - 1, 1, building.floorHeight * building.floors, wallBack, building.parent);
-		generateBase(building);
+		LinkedList<Range> prevRampRanges = new LinkedList<Range>();
+		prevRampRanges.AddFirst(generateBase(building));
 		for(int i = 1; i < building.floors - 1; i ++){
-			//generateFloor(building, i * building.floorHeight);
+			prevRampRanges = generateFloor(building, i * building.floorHeight, prevRampRanges);
 		}
 		generateTopFloor(building, (building.floors - 1) * building.floorHeight);
 		building.connectNavNodes();
@@ -83,38 +93,75 @@ public class BuildingGerator : MonoBehaviour {
 		return building;
 	}
 
-	private void generateBase(Building building){
-		generateCeilingOld(building, 0);
+	private Range generateBase(Building building){
 		building.baseNodeL = generateWallWithDoor(building, building.range.min, 0, false);
 		building.baseNodeR = generateWallWithDoor(building, building.range.max, 0, false);
+		return generateCeilingOld(building, 0);
 	}
 
-	private List<Range> generateFloor(Building building, int y, LinkedList<Range> prevRampRanges){
-		generateCeilingOld(building, y);
+	private LinkedList<Range> generateFloor(Building building, int y, LinkedList<Range> prevRampRanges){
+		//generateCeilingOld(building, y);
 		generateFloorWall(building, building.range.min, y);
 		generateFloorWall(building, building.range.max, y);
 		
-		return null;
+		createGenericPlatform(building.x, y + building.floorHeight, building.width, platformBack, building.parent);
+		
+		return generateNextRampRanges(building, y, prevRampRanges);
 	}
 
-//	LinkedList<Range> generateNextRampRanges(Building building, LinkedList<Range> prevRampRanges){
-//		int minRoomWidth = building.roomWidth.min;
-//		Range possibleWallUniverse = new Range(building.range.min + minRoomWidth, building.roomWidth.max - minRoomWidth);
-//		RangeComposition excludedSet = new RangeComposition(prevRampRanges);
-//		int optimisticNumWalls = randomGenerator.nextInt(0, 4);
-//		for(int i = 0; i < optimisticNumWalls; i ++){
-//			RangeComposition includedSet = excludedSet.inverseRangeComposition(possibleWallUniverse);
-//			if(includedSet.isEmpty()){
-//				break;
-//			}
-//			int wallX = randomGenerator.nextInt(includedSet);
-//			excludedSet.addRange(new Range(wallX - minRoomWidth, wallX + minRoomWidth));
-//		}
-//	}
+	private LinkedList<Range> generateNextRampRanges(Building building, int y, LinkedList<Range> prevRampRanges){
+		List<int> walls = new List<int>{building.range.min, building.range.max};
+		int minRoomWidth = building.roomWidth.min;
+		Range possibleWallUniverse = new Range(building.range.min + building.roomWidth.min, building.range.max - building.roomWidth.min);
+		RangeComposition excludedSet = new RangeComposition(prevRampRanges);
+		int optimisticNumWalls = randomGenerator.nextInt(building.maxRooms, x => Mathf.Pow(x, 2f));
+		for(int i = 0; i < optimisticNumWalls; i ++){
+			RangeComposition includedSet = excludedSet.inverseRangeComposition(possibleWallUniverse);
+			if(includedSet.isEmpty()){
+				break;
+			}
+			int wallX = randomGenerator.nextInt(includedSet);
+			excludedSet.injectRange(new Range(wallX - minRoomWidth - 1, wallX + minRoomWidth + 1));
+			walls.Add(wallX);
+		}
+		walls.Sort((a, b) => a.CompareTo(b));
+		LinkedList<Range> rampRanges = new LinkedList<Range>();
+		LinkedList<Range> rampGapRanges = new LinkedList<Range>();
+		for(int i = 0; i < walls.Count - 1; i ++){
+			if(i > 0){
+				generateInteriorWall(building, walls[i], y);
+			}
+			Range roomRange = new Range(walls[i] + 1, walls[i + 1] - 1);
+			Range rampRange = generateRoom(building, roomRange, y);
+			rampRanges.AddLast(new Range(rampRange.min - 1, rampRange.max + 1));
+			rampGapRanges.AddLast(rampRange);
+		}
+		
+		generateCeiling(building, y + building.floorHeight, rampGapRanges);
+		
+		return rampRanges;
+	}
 
-//	private Range createRampWithinRange(Building building, Range range, ){
-//		
-//	}
+	private Range generateRoom(Building building, Range roomRange, int y){
+		//Fill room
+		return generateRampWithinRange(building, roomRange, y);
+	}
+
+	private Range generateRampWithinRange(Building building, Range roomRange, int y){
+		Range rampRange = randomGenerator.subRange(building.rampWidth, roomRange);
+		generateRamp(building, rampRange, y);
+		return new Range(rampRange.min, rampRange.max);
+	}
+
+	private void generateCeiling(Building building, int y, LinkedList<Range> rampGapRanges){
+		Range universe = new Range(building.range.min - 1, building.range.max + 1);
+		RangeComposition rampGapSet = new RangeComposition(rampGapRanges);
+		RangeComposition platformSet = rampGapSet.inverseRangeComposition(universe);
+		foreach(Range range in platformSet.getRanges()){
+			createPlatform(range.min, y, range.size(), building.parent);
+		}
+		
+	}
 
 	private void generateTopFloor(Building building, int y){
 		Range rampRange = generateCeilingOld(building, y);
@@ -142,6 +189,10 @@ public class BuildingGerator : MonoBehaviour {
 		}
 	}
 
+	private void generateInteriorWall(Building building, int x, int y){
+		createGenericWall(x, y + 1, building.floorHeight - 1, wallCore, building.parent);
+	}
+
 	private NavNode generateWallWithDoor(Building building, int x, int y, bool generateBacking){
 		createGenericWall(x, Player.HEIGHT + 1 + y, building.floorHeight - Player.HEIGHT - 1, wallCore, building.parent);
 		if(generateBacking){
@@ -161,13 +212,7 @@ public class BuildingGerator : MonoBehaviour {
 		
 		generateRamp(building, new Range(gapXStart, gapXEnd), y);
 
-		return new Range(0, 0);
-	}
-
-	private void generateCeiling(Building building, List<Range> rampRanges, int y){
-		foreach(Range range in rampRanges){
-			generateRamp(building, range, y);
-		}
+		return new Range(gapXStart, gapXEnd);
 	}
 
 	private void generateRamp(Building building, Range range, int y){

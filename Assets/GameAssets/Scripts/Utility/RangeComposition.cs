@@ -1,10 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework.Constraints;
+using UnityEngine;
 
 public class RangeComposition {
 
     private readonly LinkedList<Range> ranges;
+    
+    public RangeComposition(){
+        ranges = new LinkedList<Range>();
+    }
 
     public RangeComposition(LinkedList<Range> ranges){
         if(ranges.First != null){
@@ -20,18 +26,84 @@ public class RangeComposition {
         this.ranges = ranges;
     }
 
-    public void addRange(Range range){
+    public LinkedListNode<Range> addRange(Range range){
         LinkedListNode<Range> currNode = ranges.First;
+        if(currNode == null){
+            ranges.AddFirst(range);
+            return ranges.First;
+        }
         for(; currNode.Next != null && currNode.Value.max < range.min; currNode = currNode.Next){
             assertNoOverlap(currNode.Value, range);
         }
         if(currNode.Next == null && currNode.Value.max < range.min){
             ranges.AddAfter(currNode, range);
+            return currNode.Next;
         }
-        else{
-            assertNoOverlap(currNode.Value, range);
-            ranges.AddBefore(currNode, range);
+        assertNoOverlap(currNode.Value, range);
+        ranges.AddBefore(currNode, range);
+        return currNode.Previous;
+    }
+    
+    public void injectRange(Range range){
+        LinkedListNode<Range> currNode = ranges.First;
+        if(currNode == null){
+            ranges.AddFirst(range);
+            return;
         }
+        if(range.min < currNode.Value.min){
+            if(range.max < currNode.Value.min - 1){
+                addRange(range);
+                return;
+            }
+            Range newRange = new Range(range.min, currNode.Value.max);
+            ranges.Remove(currNode);
+            currNode = addRange(newRange);
+            if(range.max <= newRange.max){
+                return;
+            }
+        }
+        while(currNode.Next != null && range.max > currNode.Value.max){
+            if(range.min >= currNode.Next.Value.min){
+                currNode = currNode.Next;
+                continue;
+            }
+            Range newRange = range;
+            if(range.max < currNode.Next.Value.min - 1){
+                if(range.min <= currNode.Value.max + 1){
+                    newRange = new Range(currNode.Value.min, range.max);
+                    ranges.Remove(currNode);
+                }
+                addRange(newRange);
+                return;
+            }
+            int newMax = currNode.Next.Value.max;
+            newRange = new Range(range.min, newMax);
+            ranges.Remove(currNode.Next);
+            if(range.min <= currNode.Value.max + 1){
+                newRange = new Range(currNode.Value.min, newMax);
+                ranges.Remove(currNode);
+            }
+            currNode = addRange(newRange);
+        }
+        if(currNode.Next == null && currNode.Value.max < range.max){
+            Range newRange = range;
+            if(currNode.Value.max >= range.min){
+                newRange = new Range(currNode.Value.min, range.max);
+                ranges.Remove(currNode);
+            }
+            addRange(newRange);
+        }
+    }
+
+    public void debug(){
+        int size = compressedSize();
+        string s = "";
+        int[] array = new int[size];
+        for(int i = 0; i < size; i ++){
+            array[i] = expandedValueOf(i);
+            s += array[i] + " ";
+        }
+        Debug.Log(s);
     }
 
     public RangeComposition inverseRangeComposition(Range universe){
@@ -46,8 +118,8 @@ public class RangeComposition {
             int currX = currNode.Value.min;
             if(currX - prevX > 1){
                 newRanges.AddLast(new Range(prevX + 1, currX - 1));
-                prevX = currNode.Value.max;
             }
+            prevX = currNode.Value.max;
         }
         if(universe.max - prevX > 1){
             newRanges.AddLast(new Range(prevX + 1, universe.max - 1));
@@ -82,6 +154,10 @@ public class RangeComposition {
         if(r1.overlapsWith(r2)){
             throw new RangeCompositionException("Overlapping ranges in composition");
         }
+    }
+
+    public LinkedList<Range> getRanges(){
+        return ranges;
     }
     
     public class RangeCompositionException : Exception {

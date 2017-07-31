@@ -77,7 +77,7 @@ public class Navigation {
 	
 	private Range getClosestBuildingRange(float x){
 		if(closestBuilding == null){
-			closestBuilding = BuildingGerator.buildingData.First;
+			closestBuilding = BuildingGenerator.buildingData.First;
 		}
 		while(closestBuilding.Previous != null && x < CoordinateSystem.toReal(closestBuilding.Value.x) - CoordinateSystem.BLOCK_WIDTH){
 			closestBuilding = closestBuilding.Previous;

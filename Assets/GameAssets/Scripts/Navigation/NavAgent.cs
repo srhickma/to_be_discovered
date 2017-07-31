@@ -20,7 +20,7 @@ public class NavAgent : MonoBehaviour {
 
 	public void updateClosestBuilding(){
 		if(closestBuilding == null){
-			closestBuilding = BuildingGerator.buildingData.First;
+			closestBuilding = BuildingGenerator.buildingData.First;
 		}
 		while(closestBuilding.Previous != null && refrerenceTransform.position.x < CoordinateSystem.toReal(closestBuilding.Value.x) - CoordinateSystem.BLOCK_WIDTH){
 			closestBuilding = closestBuilding.Previous;
@@ -32,13 +32,12 @@ public class NavAgent : MonoBehaviour {
 
 	private void updateClosestNode(){
 		updateClosestBuilding();
-		var closestNodeGroup = closestBuilding.Value.getClosestNodeGroup(
-			CoordinateSystem.fromReal(refrerenceTransform.position.y)
-		);
-		var nodes = closestNodeGroup.getNodes();
+		Floor floor = closestBuilding.Value.getClosestFloor(CoordinateSystem.fromReal(refrerenceTransform.position.y));
+		int currentX = (int)CoordinateSystem.fromReal(refrerenceTransform.position.x);
 		NavNode closest = null;
-		foreach(var node in nodes){
-			if(closest == null || Vector2.Distance(refrerenceTransform.position, node.real) < Vector2.Distance(refrerenceTransform.position, closest.real)){
+		foreach(var node in floor.getNodes()){
+			if(floor.noWallsBetween(new Range(node.x, currentX)) && 
+			   (closest == null || Vector2.Distance(refrerenceTransform.position, node.real) < Vector2.Distance(refrerenceTransform.position, closest.real))){
 				closest = node;
 			}
 		}

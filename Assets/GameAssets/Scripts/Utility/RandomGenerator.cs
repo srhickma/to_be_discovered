@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 
 public class RandomGenerator {
 
@@ -9,7 +8,7 @@ public class RandomGenerator {
 		return random.Next(range.min, range.max + 1);
 	}
 	
-	//Requirements, f(0)=0 && f(1)=1 && f(x)E[0,1] for all xE[0,1]
+	//f(x)E[0,1] for all xE[0,1]
 	public int nextInt(int maxExc, Func<float, float> f){
 		return (int)(f((float)random.NextDouble()) * maxExc);
 	}
@@ -60,7 +59,7 @@ public class RandomGenerator {
 	}
 
 	public T randomPreset<T>(T[] presets){
-		return presets[nextInt(0, presets.Count())];
+		return presets[nextInt(0, presets.Length)];
 	}
 
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Navigation {
@@ -24,7 +21,7 @@ public class Navigation {
 		while(path != null && path.First.Next != null && path.First.Value.y == path.First.Next.Value.y){
 			path.RemoveFirst();
 		}
-		return path;
+		return path ?? new LinkedList<NavNode>();
 	}
 
 	private LinkedList<NavNode> traverse(NavNode currentNode){

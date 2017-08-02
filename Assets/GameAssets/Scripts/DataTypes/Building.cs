@@ -29,7 +29,7 @@ public Building(int x, int width, int floorHeight, int numfloors, int maxRooms, 
 		range = new Range(x, x + width - 1);
 		floors = new Floor[numfloors + 1];
 		for(int i = 0; i < floors.Length; i ++){
-			floors[i] = new Floor();
+			floors[i] = new Floor(i * floorHeight);
 		}
 		
 		parent = new GameObject("_building");
@@ -95,7 +95,7 @@ public Building(int x, int width, int floorHeight, int numfloors, int maxRooms, 
 	private Range generateBase(){
 		baseNodeL = generateWallWithDoor(range.min, 0, false);
 		baseNodeR = generateWallWithDoor(range.max, 0, false);
-		return generateCeilingOld(0);
+		return generateLimitCeiling(0);
 	}
 
 	private LinkedList<Range> generateFloor(int y, LinkedList<Range> prevRampRanges){
@@ -104,12 +104,11 @@ public Building(int x, int width, int floorHeight, int numfloors, int maxRooms, 
 		
 		BuildingGenerator.createGenericPlatform(x, y + floorHeight, width, BuildingGenerator.instance().platformBack, parent);
 		
-		return generateNextRampRanges(y, prevRampRanges);
+		return generateFloorInterior(y, prevRampRanges);
 	}
 
-	private LinkedList<Range> generateNextRampRanges(int y, LinkedList<Range> prevRampRanges){
+	private LinkedList<Range> generateFloorInterior(int y, LinkedList<Range> prevRampRanges){
 		List<int> floorWalls = new List<int>{range.min, range.max};
-		int minRoomWidth = roomWidth.min;
 		Range possibleWallUniverse = new Range(range.min + roomWidth.min, range.max - roomWidth.min);
 		RangeComposition excludedSet = new RangeComposition(prevRampRanges);
 		int optimisticNumWalls = BuildingGenerator.rand().nextInt(maxRooms, x => Mathf.Pow(x, 2f));
@@ -119,9 +118,10 @@ public Building(int x, int width, int floorHeight, int numfloors, int maxRooms, 
 				break;
 			}
 			int wallX = BuildingGenerator.rand().nextInt(includedSet);
-			excludedSet.injectRange(new Range(wallX - minRoomWidth - 1, wallX + minRoomWidth + 1));
+			excludedSet.injectRange(new Range(wallX - roomWidth.min - 1, wallX + roomWidth.min + 1));
 			floorWalls.Add(wallX);
 		}
+		
 		floorWalls.Sort((a, b) => a.CompareTo(b));
 		LinkedList<Range> rampRanges = new LinkedList<Range>();
 		LinkedList<Range> rampGapRanges = new LinkedList<Range>();
@@ -161,7 +161,7 @@ public Building(int x, int width, int floorHeight, int numfloors, int maxRooms, 
 		}
 	}
 	
-	private Range generateCeilingOld(int y){
+	private Range generateLimitCeiling(int y){
 		int gapXStart = BuildingGenerator.rand().nextInt(x + 2, x + width - rampWidth - 1);
 		int gapXEnd = gapXStart + rampWidth - 1;
 		int floorXEnd = x + width - 1;
@@ -176,7 +176,7 @@ public Building(int x, int width, int floorHeight, int numfloors, int maxRooms, 
 	}
 
 	private void generateTopFloor(int y){
-		Range rampRange = generateCeilingOld(y);
+		Range rampRange = generateLimitCeiling(y);
 		Range minRange = new Range(rampRange.min - 1, rampRange.max + 1);
 		Range topRange = BuildingGenerator.rand().rangeBetween(range, minRange, 2);
 		generateFloorWall(range.min, y);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 public class RandomGenerator {
 
@@ -60,6 +61,10 @@ public class RandomGenerator {
 
 	public T randomPreset<T>(T[] presets){
 		return presets[nextInt(0, presets.Length)];
+	}
+	
+	public T randomPreset<T>(List<T> presets){
+		return presets[nextInt(0, presets.Count)];
 	}
 
 }

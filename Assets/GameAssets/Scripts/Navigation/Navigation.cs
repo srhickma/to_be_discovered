@@ -4,7 +4,6 @@ using UnityEngine;
 public class Navigation {
 
 	private LinkedListNode<Building> closestBuilding;
-	private readonly HashSet<NavNode> excluded = new HashSet<NavNode>();
 
 	private readonly NavNode start, target;
 	private readonly Range targetBuildingRange;
@@ -17,45 +16,42 @@ public class Navigation {
 	}
 
 	public LinkedList<NavNode> begin(){
-		LinkedList<NavNode> path = traverse(start);
+		LinkedList<NavNode> path = traverse(start, new HashSet<NavNode>()).getPath();
 		while(path != null && path.First.Next != null && path.First.Value.y == path.First.Next.Value.y){
 			path.RemoveFirst();
 		}
 		return path ?? new LinkedList<NavNode>();
 	}
 
-	private LinkedList<NavNode> traverse(NavNode currentNode){
+	private NavPath traverse(NavNode currentNode, HashSet<NavNode> excluded){
 		if(currentNode.equals(target)){
-			LinkedList<NavNode> listStart = new LinkedList<NavNode>();
-			listStart.AddFirst(currentNode);
-			return listStart;
+			return new NavPath(currentNode);
 		}
 		if(excluded.Contains(currentNode)){
-			Debug.DrawLine(currentNode.real, Vector3.zero, Color.cyan, 1);
 			return null;
 		}
 		excluded.Add(currentNode);
 		if(!inTargetBuilding){
 			inTargetBuilding = getClosestBuildingRange(currentNode.real.x).equals(targetBuildingRange);
 		}
-		var nodePriorities = getNodePriorities(currentNode);
+		var nodePriorities = getNodePriorities(currentNode, excluded);
 		if(nodePriorities == null){
-			Debug.DrawLine(currentNode.real, Vector3.zero, Color.magenta, 1);
 			return null;
 		}
-		LinkedList<NavNode> next = null;
+		NavPath shortestPath = null;
 		foreach(var node in nodePriorities){
-			Debug.DrawLine(currentNode.real, node.real, Color.yellow, 4);
-			next = traverse(node);
-			if(next != null){
-				next.AddFirst(currentNode);
-				break;
+			NavPath path = traverse(node, new HashSet<NavNode>(excluded));
+			if(path != null){
+				path.addNode(currentNode);
+				if(shortestPath == null || path.isShorterThan(shortestPath)){
+					shortestPath = path;
+				}
 			}
 		}
-		return next;
+		return shortestPath;
 	}
 
-	private List<NavNode> getNodePriorities(NavNode currentNode){
+	private List<NavNode> getNodePriorities(NavNode currentNode, HashSet<NavNode> excluded){
 		var included = new List<NavNode>();
 		int count = 0;
 		foreach(var node in currentNode.nodes){
@@ -83,6 +79,32 @@ public class Navigation {
 			closestBuilding = closestBuilding.Next;
 		}
 		return closestBuilding.Value.range;
+	}
+
+	private class NavPath {
+		
+		private readonly LinkedList<NavNode> path = new LinkedList<NavNode>();
+		private double distance;
+
+		public NavPath(NavNode end){
+			path.AddFirst(end);
+			distance = 0;
+		}
+
+		public void addNode(NavNode node){
+			distance += Vector2.Distance(path.First.Value.real, node.real);
+			path.AddFirst(node);
+		}
+		
+		public LinkedList<NavNode> getPath(){
+			return path;
+		}
+
+		public bool isShorterThan(NavPath path){
+			Debug.Log(distance + "::" + path.distance);
+			return distance < path.distance;
+		}
+
 	}
 
 }

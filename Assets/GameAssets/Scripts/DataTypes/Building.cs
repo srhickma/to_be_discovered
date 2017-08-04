@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Building {
@@ -125,16 +126,20 @@ public Building(int x, int width, int floorHeight, int numfloors, int maxRooms, 
 		floorWalls.Sort((a, b) => a.CompareTo(b));
 		LinkedList<Range> rampRanges = new LinkedList<Range>();
 		LinkedList<Range> rampGapRanges = new LinkedList<Range>();
+		List<int> blockingWalls = new List<int>{range.min, range.max};
 		for(int i = 0; i < floorWalls.Count - 1; i ++){
 			if(i > 0){
-				generateInteriorWall(floorWalls[i], y);
+				bool wallIsBlocking = generatePossibleWall(floorWalls[i], y);
+				if(wallIsBlocking){
+					blockingWalls.Add(floorWalls[i]);
+				}
 			}
 			Range roomRange = new Range(floorWalls[i] + 1, floorWalls[i + 1] - 1);
 			Range rampRange = generateRoom(roomRange, y);
 			rampRanges.AddLast(new Range(rampRange.min - 1, rampRange.max + 1));
 			rampGapRanges.AddLast(rampRange);
 		}
-		floors[getFloor(y)].setWalls(floorWalls);
+		floors[getFloor(y)].setWalls(blockingWalls);
 		
 		generateCeiling(y + floorHeight, rampGapRanges);
 		
@@ -185,6 +190,18 @@ public Building(int x, int width, int floorHeight, int numfloors, int maxRooms, 
 		generateWallWithDoor(topRange.min, topY, true);
 		generateWallWithDoor(topRange.max, topY, true);
 		BuildingGenerator.createPlatform(topRange.min, y + floorHeight * 2, topRange.size(), parent);
+	}
+	
+	private bool generatePossibleWall(int wallX, int y){
+		bool wallIsBlocking = false;
+		ScenarioBuilder.withScenario(() => { })
+			.or(() => {
+				generateInteriorWall(wallX, y);
+				wallIsBlocking = true;
+			})
+			.or(() => generateWallWithDoor(wallX, y, true))
+			.invokeRandom(BuildingGenerator.rand());
+		return wallIsBlocking;
 	}
 
 	private void generateFloorWall(int wallX, int y){

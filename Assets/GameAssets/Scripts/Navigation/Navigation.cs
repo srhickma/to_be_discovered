@@ -1,25 +1,28 @@
 ﻿using System.Collections.Generic;
 
 public class Navigation {
-
-	private LinkedListNode<Building> closestBuilding;
-
+	
 	private readonly NavNode start, target;
-	private readonly Range targetBuildingRange;
-	private bool inTargetBuilding;
 
-	public Navigation(NavNode start, NavNode target){
+	private Navigation(NavNode start, NavNode target){
 		this.start = start;
 		this.target = target;
-		targetBuildingRange = getClosestBuildingRange(target.real.x);
+	}
+	
+	public static Navigation track(NavNode start, NavNode target){
+		return new Navigation(start, target);
 	}
 
-	public LinkedList<NavNode> begin(){
-		LinkedList<NavNode> path = traverse().getPath();
-		while(path != null && path.First.Next != null && path.First.Value.y == path.First.Next.Value.y){
-			path.RemoveFirst();
+	public NavPath compute(){
+		NavPath path = traverse();
+		LinkedList<NavNode> linkedPath = path.linkedPath();
+		if(linkedPath.First == null){
+			return path;
 		}
-		return path ?? new LinkedList<NavNode>();
+		while(linkedPath.First.Next != null && linkedPath.First.Value.y == linkedPath.First.Next.Value.y){
+			path.trim();
+		}
+		return path;
 	}
 
 	private NavPath traverse(){
@@ -38,10 +41,10 @@ public class Navigation {
 			options.add(getConnectedNodes(currentNode, excluded));
 		}
 
-		return null;
+		return NavPath.empty();
 	}
 
-	private NavPath extractNavPath(TraversalNode finalNode){
+	private static NavPath extractNavPath(TraversalNode finalNode){
 		NavPath path = new NavPath(finalNode.node);
 		for(TraversalNode currentNode = finalNode.prev; currentNode != null; currentNode = currentNode.prev){
 			path.addNode(currentNode.node);
@@ -49,55 +52,24 @@ public class Navigation {
 		return path;
 	}
 
-	private List<TraversalNode> getConnectedNodes(TraversalNode currentNode, HashSet<NavNode> excluded){
+	private static List<TraversalNode> getConnectedNodes(TraversalNode currentNode, HashSet<NavNode> excluded){
 		var included = new List<TraversalNode>();
 		foreach(var node in currentNode.node.nodes){
-			if((!inTargetBuilding || getClosestBuildingRange(node.real.x).equals(targetBuildingRange)) && !excluded.Contains(node)){
+			if(!excluded.Contains(node)){
 				included.Add(new TraversalNode(node, currentNode));
 			}
 		}
 		return included;
 	}
 	
-	private Range getClosestBuildingRange(float x){
-		if(closestBuilding == null){
-			closestBuilding = BuildingGenerator.buildingData.First;
-		}
-		while(closestBuilding.Previous != null && x < CoordinateSystem.toReal(closestBuilding.Value.x) - CoordinateSystem.BLOCK_WIDTH){
-			closestBuilding = closestBuilding.Previous;
-		}
-		while(closestBuilding.Next != null && x > CoordinateSystem.toReal(closestBuilding.Next.Value.x) - CoordinateSystem.BLOCK_WIDTH){
-			closestBuilding = closestBuilding.Next;
-		}
-		return closestBuilding.Value.range;
-	}
-	
 	private class TraversalNode {
 
-		public NavNode node { get; set; }
-		public TraversalNode prev { get; set; }
+		public NavNode node { get; private set; }
+		public TraversalNode prev { get; private set; }
 
 		public TraversalNode(NavNode node, TraversalNode prev){
 			this.node = node;
 			this.prev = prev;
-		}
-
-	}
-
-	private class NavPath {
-		
-		private readonly LinkedList<NavNode> path = new LinkedList<NavNode>();
-
-		public NavPath(NavNode end){
-			path.AddFirst(end);
-		}
-
-		public void addNode(NavNode node){
-			path.AddFirst(node);
-		}
-		
-		public LinkedList<NavNode> getPath(){
-			return path;
 		}
 
 	}

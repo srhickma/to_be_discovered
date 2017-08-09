@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 public class SortedLinkedList<T> : IEnumerable<T> {
     
-    private LinkedList<T> list;
-    private Comparison<T> comparison;
+    private readonly LinkedList<T> list;
+    private readonly Comparison<T> comparison;
 
     public SortedLinkedList(Comparison<T> comparison){
         list = new LinkedList<T>();

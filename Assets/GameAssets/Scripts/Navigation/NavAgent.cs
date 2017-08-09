@@ -14,7 +14,7 @@ public class NavAgent : MonoBehaviour {
 	private NavNode closestNode;
 	private NavNode LACNode;
 	private NavNode LATNode;
-	private LinkedList<NavNode> path;
+	private NavPath path;
 	
 	private bool onRamp;
 
@@ -32,30 +32,39 @@ public class NavAgent : MonoBehaviour {
 		NavNode targetNode = targetAgent.closestNode;
 		updateClosestNode();
 		if(closestNode.equals(targetNode)){
-			path.Clear();
+			path.clear();
 			return;
 		}
-		if(!(targetNode.equals(LATNode) && closestNode.equals(LACNode) && LACNode.equals(path.First.Value))){
+		if(!(targetNode.equals(LATNode) && closestNode.equals(LACNode) && LACNode.equals(path.first()))){
 			LATNode = targetNode;
 			LACNode = closestNode;
-			Navigation nav = new Navigation(closestNode, targetNode);
-			path = nav.begin();
-			trimPath(false);
+
+			CompletableFuture<Navigation, NavPath> navFuture = CompletableFuture<Navigation, NavPath>
+				.run(navigation => navigation.compute())
+				.with(Navigation.track(closestNode, targetNode))
+				.then(aquirePathCallback);
+			
+			NavComputeObject.enqueueNavigation(navFuture);
 		}
 		
 		//TODO(SH) Remove in producition
 		NavNode lastNode = null;
-		foreach(var node in path){
+		foreach(var node in path.linkedPath()){
 			if(lastNode != null){
 				Debug.DrawLine(node.real + Vector2.up * 2, lastNode.real + Vector2.up * 2, Color.cyan, 0.1f);
 			}
 			lastNode = node;
 		}
 	}
+
+	public void aquirePathCallback(NavPath path){
+		this.path = path;
+		trimPath(false);
+	}
 	
 	public NavNode getDest(){
 		trimPath(true);
-		return path.First == null ? null : path.First.Value;
+		return path.first();
 	}
 	
 	public Building getClosestBuilding(){
@@ -97,8 +106,12 @@ public class NavAgent : MonoBehaviour {
 		if(updateFloor){
 			updateClosestFloor();
 		}
-		while(path.First != null && path.First.Next != null && canReachNode(path.First.Value, path.First.Next.Value)){
-			path.RemoveFirst();
+		LinkedList<NavNode> linkedPath = path.linkedPath();
+		if(linkedPath.First == null){
+			return;
+		}
+		while(linkedPath.First.Next != null && canReachNode(linkedPath.First.Value, linkedPath.First.Next.Value)){
+			path.trim();
 		}
 	}
 

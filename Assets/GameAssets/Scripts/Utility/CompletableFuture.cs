@@ -1,16 +1,33 @@
-﻿using System.Collections;
-using System;
-using UnityEngine;
+﻿using System;
 
-public class CompletableFuture {
+public class CompletableFuture<P, R> {
 
-    public static void runAsync(Action action, float delay, MonoBehaviour monoBehaviour){
-        monoBehaviour.StartCoroutine(func(action, delay));
+    private readonly Func<P, R> func;
+    private P param;
+    private Action<R> callback;
+
+    private CompletableFuture(Func<P, R> func){
+        this.func = func;
+        param = default(P);
+        callback = r => { };
     }
 
-    private static IEnumerator func(Action action, float delay){
-        yield return new WaitForSeconds(delay);
-        action();
+    public static CompletableFuture<P, R> run(Func<P, R> func){
+        return new CompletableFuture<P, R>(func);
+    }
+    
+    public CompletableFuture<P, R> with(P param){
+        this.param = param;
+        return this;
+    }
+
+    public CompletableFuture<P, R> then(Action<R> callback){
+        this.callback = callback;
+        return this;
+    }
+
+    public void complete(){
+        callback.Invoke(func.Invoke(param));
     }
     
 }

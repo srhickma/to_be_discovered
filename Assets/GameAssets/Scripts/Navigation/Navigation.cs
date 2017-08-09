@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
 
 public class Navigation {
 
@@ -16,55 +15,47 @@ public class Navigation {
 	}
 
 	public LinkedList<NavNode> begin(){
-		LinkedList<NavNode> path = traverse(start, new HashSet<NavNode>()).getPath();
+		LinkedList<NavNode> path = traverse().getPath();
 		while(path != null && path.First.Next != null && path.First.Value.y == path.First.Next.Value.y){
 			path.RemoveFirst();
 		}
 		return path ?? new LinkedList<NavNode>();
 	}
 
-	private NavPath traverse(NavNode currentNode, HashSet<NavNode> excluded){
-		if(currentNode.equals(target)){
-			return new NavPath(currentNode);
-		}
-		if(excluded.Contains(currentNode)){
-			return null;
-		}
-		excluded.Add(currentNode);
-		if(!inTargetBuilding){
-			inTargetBuilding = getClosestBuildingRange(currentNode.real.x).equals(targetBuildingRange);
-		}
-		var nodePriorities = getNodePriorities(currentNode, excluded);
-		if(nodePriorities == null){
-			return null;
-		}
-		NavPath shortestPath = null;
-		foreach(var node in nodePriorities){
-			NavPath path = traverse(node, new HashSet<NavNode>(excluded));
-			if(path != null){
-				path.addNode(currentNode);
-				if(shortestPath == null || path.isShorterThan(shortestPath)){
-					shortestPath = path;
-				}
+	private NavPath traverse(){
+		HashSet<NavNode> excluded = new HashSet<NavNode>();
+		SortedLinkedList<TraversalNode> options = new SortedLinkedList<TraversalNode>((a, b) => a.node.distanceTo(target).CompareTo(b.node.distanceTo(target)));
+		
+		TraversalNode currentNode = new TraversalNode(start, null);
+		options.add(getConnectedNodes(currentNode, excluded));
+		while(!options.isEmpty()){
+			if(currentNode.node.equals(target)){
+				return extractNavPath(currentNode);
 			}
+			excluded.Add(currentNode.node);
+
+			currentNode = options.popFirst();
+			options.add(getConnectedNodes(currentNode, excluded));
 		}
-		return shortestPath;
+
+		return null;
 	}
 
-	private List<NavNode> getNodePriorities(NavNode currentNode, HashSet<NavNode> excluded){
-		var included = new List<NavNode>();
-		int count = 0;
-		foreach(var node in currentNode.nodes){
+	private NavPath extractNavPath(TraversalNode finalNode){
+		NavPath path = new NavPath(finalNode.node);
+		for(TraversalNode currentNode = finalNode.prev; currentNode != null; currentNode = currentNode.prev){
+			path.addNode(currentNode.node);
+		}
+		return path;
+	}
+
+	private List<TraversalNode> getConnectedNodes(TraversalNode currentNode, HashSet<NavNode> excluded){
+		var included = new List<TraversalNode>();
+		foreach(var node in currentNode.node.nodes){
 			if((!inTargetBuilding || getClosestBuildingRange(node.real.x).equals(targetBuildingRange)) && !excluded.Contains(node)){
-				included.Add(node);
-				count ++;
+				included.Add(new TraversalNode(node, currentNode));
 			}
 		}
-		if(count == 0){
-			return null;
-		}
-
-		included.Sort((nn1, nn2) => nn1.distanceTo(target).CompareTo(nn2.distanceTo(target)));
 		return included;
 	}
 	
@@ -80,29 +71,33 @@ public class Navigation {
 		}
 		return closestBuilding.Value.range;
 	}
+	
+	private class TraversalNode {
+
+		public NavNode node { get; set; }
+		public TraversalNode prev { get; set; }
+
+		public TraversalNode(NavNode node, TraversalNode prev){
+			this.node = node;
+			this.prev = prev;
+		}
+
+	}
 
 	private class NavPath {
 		
 		private readonly LinkedList<NavNode> path = new LinkedList<NavNode>();
-		private double distance;
 
 		public NavPath(NavNode end){
 			path.AddFirst(end);
-			distance = 0;
 		}
 
 		public void addNode(NavNode node){
-			distance += Vector2.Distance(path.First.Value.real, node.real);
 			path.AddFirst(node);
 		}
 		
 		public LinkedList<NavNode> getPath(){
 			return path;
-		}
-
-		public bool isShorterThan(NavPath path){
-			Debug.Log(distance + "::" + path.distance);
-			return distance < path.distance;
 		}
 
 	}

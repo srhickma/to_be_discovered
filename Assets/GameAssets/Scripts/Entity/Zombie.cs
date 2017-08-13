@@ -9,6 +9,7 @@ public class Zombie : MonoBehaviour {
 
 	private const float MAX_SPEED = 4f;
 	private const float NAV_DELTA = 0.25f;
+	private const int MAX_PLAYER_DISTANCE = 300;
 
 	private new Rigidbody2D rigidbody;
 	
@@ -52,17 +53,30 @@ public class Zombie : MonoBehaviour {
 		if(overMoving){
 			overMoveInterval.update();
 		}
+
+		if(CoordinateSystem.fromReal(Mathf.Abs(transform.position.x - playerGO.transform.position.x)) > MAX_PLAYER_DISTANCE){
+			despawn();
+		}
 	}
 	
 	private void FixedUpdate(){
 		destPosition = dest == null ? targetPosition : dest.real;
 		
 		if(canMove){
-			Physics2D.IgnoreLayerCollision(Constants.ZOMBIE_LAYER, Constants.FALL_THROUGH_LAYER, navReference.position.y - destPosition.y > 2f);
-			Physics2D.IgnoreLayerCollision(Constants.ZOMBIE_LAYER, Constants.FALL_THROUGH_RAMP_LAYER, 
-				!(destPosition.y - navReference.position.y > 0.1f || 
-				  dest == null && player.onRamp && floorInBuilding(transform.position.y) == floorInBuilding(targetPosition.y)
-			));
+			bool ignoreFallThrough = navReference.position.y - destPosition.y > 2f;
+			bool ignoreRamp = !(destPosition.y - navReference.position.y > 0.1f ||
+			                    dest == null && player.onRamp &&
+			                    floorInBuilding(transform.position.y) == floorInBuilding(targetPosition.y));
+
+			if(ignoreFallThrough){
+				setLayer(Constants.ZOMBIE_LAYER_IGNORE_ALL);
+			}
+			else if(ignoreRamp){
+				setLayer(Constants.ZOMBIE_LAYER_IGNORE_RAMP);
+			}
+			else{
+				setLayer(Constants.ZOMBIE_LAYER);
+			}
 			
 			move();
 		}
@@ -92,6 +106,15 @@ public class Zombie : MonoBehaviour {
 
 	private int floorInBuilding(float realY){
 		return navAgent.getClosestBuilding().getFloorFromReal(realY);
+	}
+
+	private void setLayer(int layer){
+		gameObject.layer = layer;
+	}
+
+	private void despawn(){
+		ZombieSpawner.removeZombie(this);
+		Destroy(gameObject);
 	}
 
 }

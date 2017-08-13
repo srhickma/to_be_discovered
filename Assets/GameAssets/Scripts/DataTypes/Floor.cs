@@ -15,7 +15,7 @@ public class Floor {
         this.walls = walls;
     }
     
-    public List<int> getWalls(List<int> walls){
+    public List<int> getWalls(){
         return walls;
     }
 

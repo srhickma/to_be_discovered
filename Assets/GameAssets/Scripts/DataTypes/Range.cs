@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class Range {
+﻿public class Range {
 
 	public int min { get; set; }
 	public int max { get; set; }
@@ -16,6 +12,10 @@ public class Range {
 			max = b;
 			min = a;
 		}
+	}
+
+	public static Range surrounding(int x, int radius){
+		return new Range(x - radius, x + radius);
 	}
 
 	public int size(){

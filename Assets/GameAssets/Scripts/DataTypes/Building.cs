@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Building {
@@ -16,9 +15,9 @@ public class Building {
 	public GameObject parent{ get; set; }
 	public NavNode baseNodeL{ get; set; }
 	public NavNode baseNodeR{ get; set; }
-	private readonly Floor[] floors;
+	public Floor[] floors{ get; private set; }
 
-public Building(int x, int width, int floorHeight, int numfloors, int maxRooms, double windowFreq, Transform buildings){
+	public Building(int x, int width, int floorHeight, int numfloors, int maxRooms, double windowFreq, Transform buildings){
 		this.x = x;
 		this.width = width;
 		this.floorHeight = floorHeight;

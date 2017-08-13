@@ -4,18 +4,25 @@ using UnityEngine;
 public class NavComputeObject : MonoBehaviour {
 	
 	private static readonly Queue<CompletableFuture<Navigation, NavPath>> navFutureQueue = new Queue<CompletableFuture<Navigation, NavPath>>();
+	private static int queueLength;
 
-	private const int FRAME_COMPUTE_ITERS = 100;
+	private const int FRAME_COMPUTE_ITERS = 15;
 
 	private void Update(){
-		for(int i = 0; navFutureQueue.Peek() != null && i < FRAME_COMPUTE_ITERS; i ++){
+		Repeatable.invoke(() => {
 			CompletableFuture<Navigation, NavPath> navFuture = navFutureQueue.Dequeue();
-			navFuture.complete();
-		}
+			try{
+				navFuture.complete();
+			}
+			catch(MissingReferenceException){}
+			
+			queueLength--;
+		}, IntMath.min(queueLength, FRAME_COMPUTE_ITERS));
 	}
 
 	public static void enqueueNavigation(CompletableFuture<Navigation, NavPath> navFuture){
 		navFutureQueue.Enqueue(navFuture);
+		queueLength++;
 	}
 	
 }

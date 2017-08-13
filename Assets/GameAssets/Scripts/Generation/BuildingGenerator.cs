@@ -17,7 +17,7 @@ public class BuildingGenerator : MonoBehaviour {
 
 	private static int nextXLeft = -25;
 	private static int nextXRight = 25;
-	private const float MIN_FRINGE_DISTACE = 200f;
+	private const float MIN_FRINGE_DISTACE = 300f;
 
 	private readonly int[] buildingDistances = {2, 8, 16, 24, 50};
 
@@ -47,7 +47,7 @@ public class BuildingGenerator : MonoBehaviour {
 	}
 
 	private void autoFillBuildings(){
-		if(fringeDistance(nextXLeft) < MIN_FRINGE_DISTACE){
+		while(fringeDistance(nextXLeft) < MIN_FRINGE_DISTACE){
 			int width = randomGenerator.nextInt(BUILDING_WIDTH);
 			buildingData.AddFirst(new Building(nextXLeft - width,
 				width,
@@ -62,7 +62,7 @@ public class BuildingGenerator : MonoBehaviour {
 			}
 			nextXLeft -= width + randomGenerator.randomPreset(buildingDistances);
 		}
-		if(fringeDistance(nextXRight) < MIN_FRINGE_DISTACE){
+		while(fringeDistance(nextXRight) < MIN_FRINGE_DISTACE){
 			int width = randomGenerator.nextInt(BUILDING_WIDTH);
 			buildingData.AddLast(new Building(nextXRight,
 				width,

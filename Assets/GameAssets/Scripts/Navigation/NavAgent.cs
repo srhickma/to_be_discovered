@@ -14,7 +14,7 @@ public class NavAgent : MonoBehaviour {
 	private NavNode closestNode;
 	private NavNode LACNode;
 	private NavNode LATNode;
-	private NavPath path;
+	private NavPath path = NavPath.empty();
 	
 	private bool onRamp;
 
@@ -31,11 +31,11 @@ public class NavAgent : MonoBehaviour {
 	public void aquirePath(NavAgent targetAgent){
 		NavNode targetNode = targetAgent.closestNode;
 		updateClosestNode();
-		if(closestNode.equals(targetNode)){
+		if(targetNode == null || closestNode.equals(targetNode)){
 			path.clear();
 			return;
 		}
-		if(!(targetNode.equals(LATNode) && closestNode.equals(LACNode) && LACNode.equals(path.first()))){
+		if(!(targetNode.equals(LATNode) && closestNode.equals(LACNode) && closestNode.equals(path.first()))){
 			LATNode = targetNode;
 			LACNode = closestNode;
 

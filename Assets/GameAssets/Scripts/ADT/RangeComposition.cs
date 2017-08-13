@@ -11,6 +11,10 @@ public class RangeComposition {
     public RangeComposition(){
         ranges = new LinkedList<Range>();
     }
+    
+    public RangeComposition(Range range){
+        ranges = new LinkedList<Range>(new List<Range>{range});
+    }
 
     public RangeComposition(LinkedList<Range> ranges){
         if(ranges.First != null){

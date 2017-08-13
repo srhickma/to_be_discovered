@@ -45,7 +45,6 @@ public class ZombieSpawner : MonoBehaviour {
 		Range spawnUniverse = Range.surrounding(playerX, MAX_SPAWN_DISTANCE);
 		RangeComposition spawnRange = noSpawnRange.inverseRangeComposition(spawnUniverse);
 		int x = randomGenerator.nextInt(spawnRange);
-		Debug.Log(x);
 
 		Building building = getClosestBuilding(x);
 
@@ -63,14 +62,12 @@ public class ZombieSpawner : MonoBehaviour {
 				}
 			}
 		}
-		Debug.Log(x);
 		spawnZombie(x, y);
 	}
 
 	private void spawnZombie(int x, int y){
 		Transform zombie = Instantiate(zombiePrefab, CoordinateSystem.toReal(x, y), Quaternion.identity, zombieContainer.transform);
 		zombies.Add(zombie.GetComponent<Zombie>());
-		Debug.Log(zombie.transform.position.x);
 	}
 
 	public static void removeZombie(Zombie zombie){

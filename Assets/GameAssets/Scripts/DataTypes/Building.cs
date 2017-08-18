@@ -29,7 +29,7 @@ public class Building {
 		range = new Range(x, x + width - 1);
 		floors = new Floor[numfloors + 1];
 		for(int i = 0; i < floors.Length; i ++){
-			floors[i] = new Floor(i * floorHeight);
+			floors[i] = new Floor(i * floorHeight, i);
 		}
 		
 		parent = new GameObject("_building");
@@ -90,6 +90,19 @@ public class Building {
 
 	public int getFloorFromReal(float realY){
 		return getFloor(CoordinateSystem.fromReal(realY));
+	}
+
+	public int getTraversibleXOnFloor(Floor floor, RandomGenerator randomGenerator){
+		int possibleX = randomGenerator.nextInt(range);
+		foreach(int wallX in floor.getWalls()){
+			if(wallX == possibleX){
+				int prevX = wallX - 1;
+				int postX = wallX + 1;
+				possibleX = range.contains(prevX) ? prevX : postX;
+				break;
+			}
+		}
+		return possibleX;
 	}
 
 	private Range generateBase(){

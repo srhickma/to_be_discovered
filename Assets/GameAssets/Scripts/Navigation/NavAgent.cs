@@ -11,12 +11,13 @@ public class NavAgent : MonoBehaviour {
 	
 	private LinkedListNode<Building> closestBuilding;
 	private Floor closestFloor;
-	private NavNode closestNode;
+	public NavNode closestNode{ get; private set; }
 	private NavNode LACNode;
 	private NavNode LATNode;
 	private NavPath path = NavPath.empty();
-	
-	private bool onRamp;
+
+	public bool onRamp{ get; private set; }
+	private bool canAquire = true;
 
 	private Interval updateInterval;
 
@@ -24,20 +25,32 @@ public class NavAgent : MonoBehaviour {
 		updateInterval = new Interval(updateClosestNode, 0.5f);
 	}
 
+	private void Start(){
+		updateClosestBuilding();
+	}
+
 	private void Update(){
 		updateInterval.update();
 	}
 
 	public void aquirePath(NavAgent targetAgent){
-		NavNode targetNode = targetAgent.closestNode;
+		aquirePath(targetAgent.closestNode);
+	}
+
+	public void aquirePath(int targetX, int targetY){
+		aquirePath(getTargetNode(targetX, targetY));
+	}
+	
+	private void aquirePath(NavNode targetNode){
 		updateClosestNode();
 		if(targetNode == null || closestNode.equals(targetNode)){
 			path.clear();
 			return;
 		}
-		if(!(targetNode.equals(LATNode) && closestNode.equals(LACNode) && closestNode.equals(path.first()))){
+		if(canAquire && !(targetNode.equals(LATNode) && closestNode.equals(LACNode) && closestNode.equals(path.first()))){
 			LATNode = targetNode;
 			LACNode = closestNode;
+			canAquire = false;
 
 			CompletableFuture<Navigation, NavPath> navFuture = CompletableFuture<Navigation, NavPath>
 				.run(navigation => navigation.compute())
@@ -60,6 +73,7 @@ public class NavAgent : MonoBehaviour {
 	public void aquirePathCallback(NavPath path){
 		this.path = path;
 		trimPath(false);
+		canAquire = true;
 	}
 	
 	public NavNode getDest(){
@@ -100,7 +114,26 @@ public class NavAgent : MonoBehaviour {
 		}
 		closestNode = closest;
 	}
-
+	
+	private NavNode getTargetNode(int x, int y){
+		LinkedListNode<Building> targetBuilding = closestBuilding ?? BuildingGenerator.buildingData.First;
+		while(targetBuilding.Previous != null && x < targetBuilding.Value.x - 1){
+			targetBuilding = targetBuilding.Previous;
+		}
+		while(targetBuilding.Next != null && x > targetBuilding.Next.Value.x - 1){
+			targetBuilding = targetBuilding.Next;
+		}
+		Floor targetFloor = targetBuilding.Value.getClosestFloor(y);
+		NavNode closest = null;
+		Vector2 targetPosition = CoordinateSystem.toReal(x, y);
+		foreach(var node in targetFloor.getNodes()){
+			if(targetFloor.noWallsBetween(new Range(node.x, x)) && 
+			   (closest == null || Vector2.Distance(targetPosition, node.real) < Vector2.Distance(targetPosition, closest.real))){
+				closest = node;
+			}
+		}
+		return closest;
+	}
 	private void trimPath(bool updateFloor){
 		rayCast();
 		if(updateFloor){
@@ -111,6 +144,11 @@ public class NavAgent : MonoBehaviour {
 			return;
 		}
 		while(linkedPath.First.Next != null && canReachNode(linkedPath.First.Value, linkedPath.First.Next.Value)){
+			path.trim();
+		}
+		
+		Range xRange = new Range((int) CoordinateSystem.fromReal(transform.position.x), linkedPath.First.Value.x);
+		if(linkedPath.First.Next == null && closestFloor.y == linkedPath.First.Value.y && closestFloor.noWallsBetween(xRange)){
 			path.trim();
 		}
 	}

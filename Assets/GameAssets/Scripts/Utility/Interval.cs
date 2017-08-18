@@ -20,5 +20,18 @@ public class Interval {
 		action();
 		elapsedTime = 0f;
 	}
+	
+	public void update(bool unlocked){
+		elapsedTime += Time.deltaTime;
+		if(!(elapsedTime > interval && unlocked))
+			return;
+		action();
+		elapsedTime = 0f;
+	}
 
+	public void fire(){
+		action();
+		elapsedTime = 0f;
+	}
+	
 }

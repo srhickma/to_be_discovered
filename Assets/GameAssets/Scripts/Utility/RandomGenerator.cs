@@ -9,6 +9,12 @@ public class RandomGenerator {
 		return random.Next(range.min, range.max + 1);
 	}
 	
+	public int nextInt(Range range1, Range range2){
+		int min = IntMath.max(range1.min, range2.min);
+		int max = IntMath.min(range1.max, range2.max);
+		return random.Next(min, max + 1);
+	}
+	
 	//f(x)E[0,1] for all xE[0,1]
 	public int nextInt(int maxExc, Func<float, float> f){
 		return (int)(f((float)random.NextDouble()) * maxExc);

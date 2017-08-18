@@ -9,19 +9,26 @@ public class ZombieSpawner : MonoBehaviour {
 	private const int MAX_SPAWN_DISTANCE = 250;
 	private const int MIN_SPAWN_DISTANCE = 40;
 	private const int SPAWN_HEIGHT_ABOVE_FLOOR = 3;
-
-	private static readonly Range zombieRange = new Range(40, 100);
+	private const float BASE_SPAWN_FREQ = 0.01f;
+	private const float FULL_FREQ_DAY = 30.0f;
+	private const int HARD_SPAWN_CAP = 0;
 	
 	private LinkedListNode<Building> closestBuilding;
 	private static Interval spawnInterval;
 	private static readonly List<Zombie> zombies = new List<Zombie>();
 	private GameObject playerGO;
+
+	private static TimeFunction softSpawnCap;
+	private static TimeFunction minimumSpawned;
 	
 	private readonly RandomGenerator randomGenerator = new RandomGenerator();
 
 	private void Awake(){
 		spawnInterval = new Interval(trySpawningZombie, 0.1f);
 		playerGO = GameObject.Find("Player");
+		
+		softSpawnCap = new TimeFunction(time => 50 + time.day * 8);
+		minimumSpawned = new TimeFunction(time => 10 + time.day * 4);
 	}
 
 	private void Update(){
@@ -30,10 +37,15 @@ public class ZombieSpawner : MonoBehaviour {
 
 	private void trySpawningZombie(){
 		int spawnedZombies = zombies.Count;
-		if(spawnedZombies > zombieRange.max){
+		int spawnCap = IntMath.min(softSpawnCap.eval(), HARD_SPAWN_CAP);
+		if(spawnedZombies > spawnCap){
 			return;
 		}
-		if(spawnedZombies < zombieRange.min){
+		if(spawnedZombies < minimumSpawned.eval()){
+			spawnZombie();
+		}
+		float spawnChance = BASE_SPAWN_FREQ + TimeController.day / FULL_FREQ_DAY;
+		if(randomGenerator.nextBool(spawnChance)){
 			spawnZombie();
 		}
 	}
@@ -52,15 +64,7 @@ public class ZombieSpawner : MonoBehaviour {
 		if(building.range.contains(x)){ //Zombie inside building
 			Floor floor = randomGenerator.randomPreset(building.floors);
 			y += floor.y;
-
-			foreach(int wallX in floor.getWalls()){
-				if(wallX == x){
-					int prevX = wallX - 1;
-					int postX = wallX + 1;
-					x = building.range.contains(prevX) ? prevX : postX;
-					break;
-				}
-			}
+			x = closestBuilding.Value.getTraversibleXOnFloor(floor, randomGenerator);
 		}
 		spawnZombie(x, y);
 	}

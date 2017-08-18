@@ -6,9 +6,11 @@ public class Floor {
     private List<int> walls = new List<int>();
     private readonly List<NavNode> nodes = new List<NavNode>();
     public int y { get; set; }
+    public int floor { get; private set; }
 
-    public Floor(int y){
+    public Floor(int y, int floor){
         this.y = y;
+        this.floor = floor;
     }
 
     public void setWalls(List<int> walls){

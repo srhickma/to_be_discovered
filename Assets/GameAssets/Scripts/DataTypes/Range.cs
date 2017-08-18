@@ -18,6 +18,11 @@
 		return new Range(x - radius, x + radius);
 	}
 
+	public void shift(int offset){
+		min += offset;
+		max += offset;
+	}
+
 	public int size(){
 		return max - min + 1;
 	}

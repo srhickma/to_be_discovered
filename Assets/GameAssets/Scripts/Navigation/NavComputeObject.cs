@@ -6,7 +6,7 @@ public class NavComputeObject : MonoBehaviour {
 	private static readonly Queue<CompletableFuture<Navigation, NavPath>> navFutureQueue = new Queue<CompletableFuture<Navigation, NavPath>>();
 	private static int queueLength;
 
-	private const int FRAME_COMPUTE_ITERS = 15;
+	private const int FRAME_COMPUTE_ITERS = 10;
 
 	private void Update(){
 		Repeatable.invoke(() => {

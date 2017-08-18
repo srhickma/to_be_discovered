@@ -10,6 +10,12 @@ public class Zombie : MonoBehaviour {
 	private const float MAX_SPEED = 4f;
 	private const float NAV_DELTA = 0.25f;
 	private const int MAX_PLAYER_DISTANCE = 300;
+	private const int MAX_IDLE_MOVE_RADIUS = 80;
+	private static Range IDLE_MOVE_WAIT_SEC;
+
+	private Vector2 idleTargetPosition;
+	private int nextIdleMoveWaitSec;
+	private float idleMoveWaitElapsed;
 
 	private new Rigidbody2D rigidbody;
 	
@@ -28,10 +34,13 @@ public class Zombie : MonoBehaviour {
 
 	private Interval aquireInterval;
 	private Interval overMoveInterval;
+	private Interval idleMoveInterval;
+	
+	private readonly RandomGenerator randomGenerator = new RandomGenerator();
 
 	private bool overMoving;
-	
-	public bool canMove;
+	private bool needMove;
+	public bool alerted;
 
 	private void Awake(){
 		rigidbody = gameObject.GetComponent<Rigidbody2D>();
@@ -44,12 +53,14 @@ public class Zombie : MonoBehaviour {
 
 		aquireInterval = new Interval(() => navAgent.aquirePath(playerNavAgent), 0.5f);
 		overMoveInterval = new Interval(() => overMoving = false, 0.1f);
+		idleMoveInterval = new Interval(() => needMove = false, 10f);
+		
+		IDLE_MOVE_WAIT_SEC = new Range(4, 20);
 	}
 
 	private void Update(){
-		targetPosition = playerGO.transform.position;
-		
-		aquireInterval.update();
+		updateMoveTarget();
+
 		if(overMoving){
 			overMoveInterval.update();
 		}
@@ -58,11 +69,59 @@ public class Zombie : MonoBehaviour {
 			despawn();
 		}
 	}
+
+	private void updateMoveTarget(){
+		if(alerted){
+			aquireInterval.update();
+			needMove = true;
+			targetPosition = playerGO.transform.position;
+		}
+		else{
+			if(!needMove){
+				idleMoveWaitElapsed += Time.deltaTime;
+				if(idleMoveWaitElapsed > nextIdleMoveWaitSec){
+					int y = (int) CoordinateSystem.fromReal(transform.position.y);
+					int x = (int) CoordinateSystem.fromReal(transform.position.x);
+					int targetY = 0;
+					int targetX;
+					
+					Building closestBuilding = navAgent.getClosestBuilding();
+					int currentFloor = closestBuilding.getClosestFloor(y).floor;
+					Range floorLimiter = Range.surrounding(currentFloor, 1);
+					Range floors = new Range(0, closestBuilding.floors.Length - 1);
+					Floor targetFloor = closestBuilding.floors[randomGenerator.nextInt(floors, floorLimiter)];
+					
+					if(closestBuilding.range.contains(x) && targetFloor.y != 0){
+						targetY = targetFloor.y;
+						targetX = closestBuilding.getTraversibleXOnFloor(targetFloor, randomGenerator);
+					}
+					else{
+						targetX = randomGenerator.nextInt(Range.surrounding(x, MAX_IDLE_MOVE_RADIUS));
+					}
+					
+					navAgent.aquirePath(targetX, targetY);
+					idleTargetPosition = CoordinateSystem.toReal(targetX, targetY);
+					
+					idleMoveWaitElapsed = 0f;
+					nextIdleMoveWaitSec = randomGenerator.nextInt(IDLE_MOVE_WAIT_SEC);
+					needMove = true;
+				}
+			}
+			else{
+				if(Mathf.Abs(transform.position.x - idleTargetPosition.x) < 2f){
+					idleMoveInterval.fire();
+				}
+				idleMoveInterval.update(!navAgent.onRamp);
+			}
+			
+			targetPosition = idleTargetPosition;
+		}
+	}
 	
 	private void FixedUpdate(){
-		destPosition = dest == null ? targetPosition : dest.real;
-		
-		if(canMove){
+		if(needMove){
+			destPosition = dest == null ? targetPosition : dest.real;
+
 			bool ignoreFallThrough = navReference.position.y - destPosition.y > 2f;
 			bool ignoreRamp = !(destPosition.y - navReference.position.y > 0.1f ||
 			                    dest == null && player.onRamp &&
@@ -77,7 +136,7 @@ public class Zombie : MonoBehaviour {
 			else{
 				setLayer(Constants.ZOMBIE_LAYER);
 			}
-			
+
 			move();
 		}
 	}

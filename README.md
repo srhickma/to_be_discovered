@@ -61,7 +61,7 @@ CompletableFuture<Navigation, NavPath> navFuture = CompletableFuture<Navigation,
 			
 NavComputeObject.enqueueNavigation(navFuture);
 ```
-### NavComputeObject
+#### NavComputeObject
 ```cs
 private static readonly Queue<CompletableFuture<Navigation, NavPath>> navFutureQueue = new Queue<CompletableFuture<Navigation, NavPath>>();
 private static int queueLength;

@@ -3,6 +3,8 @@ to_be_discovered
 
 to_be_discovered (TBD) is a 2D side scroller game where the player must fight to survive against an endless onslaught of zombies, as well as nature itself. TBD is still in early development, and is largely an experiment in realistic (bounded) procedural generation, as well as the AI challenges associated with navigating in a random world.
 
+![alt text](img/main.png "Logo Title Text 1")
+
 
 Running
 -----
@@ -45,10 +47,14 @@ Navigation
 -----
 
 ### Structure
-Navigation in TBD is based on a node structure of NavNode objects that are joined upon generation, creating a web-like mesh that can then be traversed from one NavNode to another. This linked node structure provides a very intuitive base for pathfinding through a dynamic and randomly generated world, since nodes can be added randomly at runtime without performance hits by simply linking new nodes to existing nodes. This would not be possible in most traditional pathfinding approaches where paths are "baked" beforehand and never change. Then NavNagent components are placed on important objects in the game (like players and zombies) which keep track of the whereabouts of these objects through the mesh, thus providing start and end points from which to compute navigation paths. Using dynamic linked lists that store buildings and their NavNodes, this "closest node" can be computed extremely fast and has no noticeable performance impact for 100+ concurrent NavAgents. 
+Navigation in TBD is based on a node structure of NavNode objects that are joined upon generation, creating a web-like mesh that can then be traversed from one NavNode to another. This linked node structure provides a very intuitive base for pathfinding through a dynamic and randomly generated world, since nodes can be added randomly at runtime without performance hits by simply linking new nodes to existing nodes. This would not be possible in most traditional pathfinding approaches where paths are "baked" beforehand and never change. Then NavNagent components are placed on important objects in the game (like players and zombies) which keep track of the whereabouts of these objects through the mesh, thus providing start and end points from which to compute navigation paths. Using dynamic linked lists that store buildings and their NavNodes, this "closest node" can be computed extremely fast and has no noticeable performance impact for 100+ concurrent NavAgents.
+
+![alt text](img/generation.png "Logo Title Text 1")
 
 ### Pathfinding
 Once a start and end node is aquired, then a traversal algorithm (located in the Navigation object) can be used to generate a NavPath representing a sequence of nodes leading from the start to finish. The path given is not always perfectly optimized, but some considerations were made to make the algorithm fast and space efficient. Once the NavPath is returned to the desired NavAgent, the NavAgent can provide the "next target" for the associated object and manipulate this path as the object moves. In theory, if the target does not move, a NavAgent seeking the target should only need to compute the path to the target once, and them simply move from node to node based on the instructions provided by the NavAgent. In reality, due to the unpredictability of the ingame physics engine the path can become out of sync with the object, thus the path should be recalculated on a reasonable interval to prevent objects following "bad" paths.
+
+![alt text](img/navigation.png "Logo Title Text 1")
 
 ### Computation
 While this whole process runs very fast, in order to put an upper limit on cycle time consumed by navigation, the NavComputeObject is used to handle all navigation path computation. This object stores navigation jobs in a FIFO queue as CompletableFutures (a custom data type used to "asynchronously" run a function and capture the return value in a callback). Every cycle, the NavComputeObject will only compute a set maximum number of navigation paths, thus providing an upper limit on the computation time per cycle. As a result, if the number of navigation jobs is very large, the navigations will simply take longer to "complete" rather than impacting the fps of the game. Based on all performance considerations, on any modern computer several hundred navigation agents can simultaneously navigate to different targets (recomputing their paths at a resonable rate) with a performance hit of only ~2ms per cycle. Shown below are snippets of a NavAgent equeuing a navigation computation and the NavComputeObject:

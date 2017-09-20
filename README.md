@@ -115,11 +115,11 @@ private LinkedList<Range> generateFloorInterior(int y, LinkedList<Range> prevRam
 ...
 }
 ```
-In another case, if we know the ranges of the stairs for a floor, then we can easily generate an "optimized" ceiling for that floor. We would only need to compose these ranges, take the inverse over the universe of the building, iterate through the ranges of the new composition, and instantiate a ceiling "block" from the min to the max of each range. This would give us a complete ceiling with the guarantee that there are no overlapping/redundant objects, and thus would give the optimal game performance.
+In another case, if we know the ranges of the stairs on a floor, then we can easily generate an "optimized" ceiling for that floor. We would only need to compose these ranges, take the inverse over the universe of the building, iterate through the ranges of the new composition, and instantiate a ceiling "block" from the min to the max of each range. This would give us a complete ceiling with the guarantee that there are no overlapping/redundant objects, and thus would give the optimal game performance.
 
 
 Author
 -----
 
-Shane Hickman <srhickman@edu.uwaterloo.ca> Sofware Engineering student at the University of Waterloo.
+Shane Hickman <srhickman@edu.uwaterloo.ca> Software Engineering student at the University of Waterloo.
 

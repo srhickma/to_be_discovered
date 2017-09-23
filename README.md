@@ -121,5 +121,5 @@ In another case, if we know the ranges of the stairs on a floor, then we can eas
 Author
 -----
 
-Shane Hickman <srhickman@edu.uwaterloo.ca> Software Engineering student at the University of Waterloo.
+Shane Hickman <srhickma@edu.uwaterloo.ca> Software Engineering student at the University of Waterloo.
 
